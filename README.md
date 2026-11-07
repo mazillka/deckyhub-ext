@@ -1,5 +1,7 @@
 # DeckyHub Security for GitHub
 
+[![Support on Ko-fi](https://img.shields.io/badge/Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/mazillka)
+
 A Chrome extension that displays DeckyHub registry audit warnings and release ZIP scan results on GitHub repositories listed in the registry. It shows stable and pre-release reports when available, including ClamAV and YARA findings and VirusTotal and MetaDefender engine counts, the scanned release and file, and a VirusTotal hash lookup link. Audit warnings include a separate pre-release label. Runs-as-root is shown when reported by the registry.
 
 ## Install locally
