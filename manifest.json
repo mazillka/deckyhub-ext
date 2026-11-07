@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "DeckyHub Security",
+  "version": "1.0.0",
+  "description": "See DeckyHub audit warnings and virus scan results on GitHub plugin repositories.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://raw.githubusercontent.com/mazillka/deckyhub-registry/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [{ "matches": ["https://github.com/*"], "js": ["content.js"], "css": ["content.css"], "run_at": "document_idle" }]
+}

@@ -1,0 +1,18 @@
+.dh-panel { box-sizing: border-box; margin: 16px auto; padding: 16px 20px; max-width: 1280px; border: 1px solid var(--borderColor-default, #d0d7de); border-radius: 8px; background: var(--bgColor-default, #fff); color: var(--fgColor-default, #1f2328); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.dh-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dh-head strong { font-size: 16px; }
+.dh-head a { margin-left: auto; }
+.dh-panel a { color: var(--fgColor-accent, #0969da); }
+.dh-muted, .dh-footnote { color: var(--fgColor-muted, #656d76); font-size: 12px; }
+.dh-warnings { margin-top: 12px; padding: 10px 12px; border-left: 3px solid var(--fgColor-attention, #9a6700); background: var(--bgColor-attention-muted, #fff8c5); border-radius: 4px; }
+.dh-warning-list { margin: 6px 0 0; padding-left: 20px; }
+.dh-warning-list li + li { margin-top: 5px; }
+.dh-badge { display: inline-block; border: 1px solid currentColor; border-radius: 20px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
+.dh-good { color: var(--fgColor-success, #1a7f37); }
+.dh-warning, .dh-unknown { color: var(--fgColor-attention, #9a6700); }
+.dh-danger { color: var(--fgColor-danger, #cf222e); }
+.dh-channel { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--borderColor-muted, #d8dee4); }
+.dh-release { font-weight: 600; overflow-wrap: anywhere; }
+.dh-scan { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 5px; }
+.dh-detail, .dh-notice, .dh-footnote { margin: 8px 0 0; overflow-wrap: anywhere; }
+
