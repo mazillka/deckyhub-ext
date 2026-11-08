@@ -1,0 +1,22 @@
+{
+  "author": "Andrii Shevchuk-Yuhanets",
+  "name": "deckyhub-security",
+  "description": "DeckyHub security information for GitHub repositories",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mazillka/deckyhub-ext"
+  },
+  "scripts": {
+    "build-dev": "webpack --mode development",
+    "build-prod": "webpack --mode production"
+  },
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "copy-webpack-plugin": "^13.0.0",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "zip-webpack-plugin": "^4.0.3"
+  }
+}
