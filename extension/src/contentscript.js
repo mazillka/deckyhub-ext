@@ -81,6 +81,9 @@
       const link = el('a', 'View on DeckyHub ↗');
       link.href = `https://deckyhub.com/plugins/${encodeURIComponent(data.app.id)}.html`;
       link.target = '_blank'; link.rel = 'noopener noreferrer'; head.append(link);
+      const install = el('a', 'Install on Steam Deck ↗', 'dh-install-link');
+      install.href = `https://deckyhub.com/plugins/${encodeURIComponent(data.app.id)}.html#remote-install`;
+      install.target = '_blank'; install.rel = 'noopener noreferrer'; head.append(install);
     }
     panel.append(head);
     const notes = el('section', '', 'dh-warnings');
