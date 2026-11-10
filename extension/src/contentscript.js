@@ -21,7 +21,7 @@
   function scanner(parent, name, report) {
     const state = report?.result;
     const labels = { clean: 'No threats found', infected: 'Threat found', incomplete: 'Incomplete', error: 'Scan error' };
-    const kind = state === 'clean' ? 'good' : state === 'infected' ? 'danger' : 'unknown';
+    const kind = state === 'clean' ? 'good' : state === 'infected' || !state ? 'danger' : 'unknown';
     const row = el('div', '', 'dh-scan');
     row.append(el('strong', name));
     badge(row, labels[state] || 'Not scanned yet', kind);
@@ -43,7 +43,9 @@
       }
     } else {
       const labels = { pending: 'Scan pending', waiting: 'Scan pending', error: 'Scan error', unsupported: 'ZIP too large for VirusTotal' };
-      badge(row, !available ? 'Report unavailable' : labels[report?.state] || (report?.state === 'complete' ? 'Invalid report' : 'Not scanned yet'), 'unknown');
+      const state = report?.state;
+      const pending = state === 'pending' || state === 'waiting' || !state;
+      badge(row, !available ? 'Report unavailable' : labels[state] || (state === 'complete' ? 'Invalid report' : 'Not scanned yet'), available && pending ? 'danger' : 'unknown');
     }
     parent.append(row);
   }
@@ -64,7 +66,9 @@
       }
     } else {
       const labels = { pending: 'Scan pending', waiting: 'Scan pending', error: 'Scan error', unsupported: 'ZIP too large for MetaDefender' };
-      badge(row, !available ? 'Report unavailable' : labels[report?.state] || (report?.state === 'complete' ? 'Invalid report' : 'Not scanned yet'), 'unknown');
+      const state = report?.state;
+      const pending = state === 'pending' || state === 'waiting' || !state;
+      badge(row, !available ? 'Report unavailable' : labels[state] || (state === 'complete' ? 'Invalid report' : 'Not scanned yet'), available && pending ? 'danger' : 'unknown');
     }
     parent.append(row);
   }
