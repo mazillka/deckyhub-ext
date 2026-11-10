@@ -76,14 +76,25 @@
     const panel = el('section', '', 'dh-panel'); panel.id = ID;
     panel.setAttribute('aria-label', 'DeckyHub security information');
     const head = el('div', '', 'dh-head');
-    head.append(el('strong', 'DeckyHub security'), el('span', data.app.name, 'dh-muted'));
+    const brand = el('div', '', 'dh-brand');
+    const icon = el('img', '', 'dh-icon');
+    icon.src = chrome.runtime.getURL('icons/icon32.png');
+    icon.alt = '';
+    icon.width = icon.height = 32;
+    const identity = el('div', '', 'dh-identity');
+    identity.append(el('strong', 'DeckyHub Security'), el('span', data.app.name, 'dh-muted'));
+    brand.append(icon, identity);
+    head.append(brand);
     if (typeof data.app.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(data.app.id)) {
       const link = el('a', 'View on DeckyHub ↗');
       link.href = `https://deckyhub.com/plugins/${encodeURIComponent(data.app.id)}.html`;
-      link.target = '_blank'; link.rel = 'noopener noreferrer'; head.append(link);
+      link.target = '_blank'; link.rel = 'noopener noreferrer';
       const install = el('a', 'Send to device (preview) ↗', 'dh-install-link');
       install.href = `https://deckyhub.com/develop/plugins/${encodeURIComponent(data.app.id)}.html#remote-install`;
-      install.target = '_blank'; install.rel = 'noopener noreferrer'; head.append(install);
+      install.target = '_blank'; install.rel = 'noopener noreferrer';
+      const actions = el('div', '', 'dh-actions');
+      actions.append(link, install);
+      head.append(actions);
     }
     panel.append(head);
     const notes = el('section', '', 'dh-warnings');
