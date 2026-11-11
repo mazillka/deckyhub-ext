@@ -93,7 +93,7 @@
       const link = el('a', 'View on DeckyHub ↗', 'dh-site-link');
       link.href = `https://deckyhub.com/plugins/${encodeURIComponent(data.app.id)}.html`;
       link.target = '_blank'; link.rel = 'noopener noreferrer';
-      const install = el('a', 'Send to device (preview) ↗', 'dh-install-link');
+      const install = el('a', 'Send to device (experimental) ↗', 'dh-install-link');
       install.href = `https://deckyhub.com/develop/plugins/${encodeURIComponent(data.app.id)}.html#remote-install`;
       install.target = '_blank'; install.rel = 'noopener noreferrer';
       const actions = el('div', '', 'dh-actions');
