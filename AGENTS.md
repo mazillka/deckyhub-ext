@@ -9,4 +9,6 @@ This repository contains a Manifest V3 browser extension (Chromium browsers and 
 
 From `extension/`, run `npm ci` and `npm run build-all` to validate both builds. For behavior changes, also check the unpacked `dist/` extension on GitHub, including navigation and unavailable or stale data when relevant; report if browser testing was not possible. CI builds both packages on Node 22 and keeps each ZIP as a workflow artifact. There is no automated test script currently.
 
+To release: set the same `version` in `extension/manifest.json` and `extension/package.json`, merge that to `main`, then push the tag `vX.Y.Z` on that commit. `release.yml` checks the tag against the manifest, builds both packages and attaches them (with `SHA256SUMS.txt`) to a GitHub release; a tag with a dash (`v1.2.0-rc.1`) becomes a pre-release. Replace the generated notes with plain-language ones.
+
 Keep the extension's permissions and network access as narrow as its features require. Do not claim scan results prove safety, or describe missing reports as clean.
