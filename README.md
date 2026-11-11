@@ -2,14 +2,23 @@
 
 [![Support Development & Maintenance](https://img.shields.io/badge/Support_Development_%26_Maintenance-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/mazillka)
 
-A Chrome extension that displays DeckyHub registry audit warnings and release ZIP scan results on GitHub repositories listed in the registry. It shows stable and pre-release reports when available, including ClamAV and YARA findings and VirusTotal and MetaDefender engine counts, the scanned release and file, and a VirusTotal hash lookup link. Audit warnings include a separate pre-release label. Runs-as-root is shown when reported by the registry.
+A browser extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox that displays DeckyHub registry audit warnings and release ZIP scan results on GitHub repositories listed in the registry. It shows stable and pre-release reports when available, including ClamAV and YARA findings and VirusTotal and MetaDefender engine counts, the scanned release and file, and a VirusTotal hash lookup link. Audit warnings include a separate pre-release label. Runs-as-root is shown when reported by the registry.
 
 ## Install locally
 
 1. Run `npm ci` and `npm run build-prod` in the `extension` directory (Node.js and npm are required).
 2. Open `chrome://extensions` in Chrome and enable **Developer mode**.
 3. Choose **Load unpacked** and select the `extension/dist` folder.
+   In Edge, Opera, Brave or Vivaldi, open that browser's extensions page instead; the folder is the same.
 4. Visit a listed repository, for example [CSS Loader](https://github.com/DeckThemes/SDH-CssLoader). The panel appears at the top of the repository content. Reload the GitHub page after updating the extension.
+
+### Firefox
+
+1. Run `npm ci` and `npm run build-firefox` in the `extension` directory.
+2. Open `about:debugging#/runtime/this-firefox` and choose **Load Temporary Add-on**.
+3. Select `extension/dist-firefox/manifest.json`. Firefox 127 or newer is needed, and it removes a temporary add-on when it closes.
+
+Every push also builds both packages: the ZIPs are attached to the run of the **Build** workflow under Actions.
 
 ## Data and privacy
 

@@ -9,7 +9,9 @@
   },
   "scripts": {
     "build-dev": "webpack --mode development",
-    "build-prod": "webpack --mode production"
+    "build-prod": "webpack --mode production",
+    "build-firefox": "webpack --mode production --env browser=firefox",
+    "build-all": "npm run build-prod && npm run build-firefox"
   },
   "license": "MIT",
   "dependencies": {},
