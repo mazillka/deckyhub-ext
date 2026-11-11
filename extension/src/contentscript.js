@@ -78,15 +78,15 @@
     const head = el('div', '', 'dh-head');
     const brand = el('div', '', 'dh-brand');
     const icon = el('img', '', 'dh-icon');
-    icon.src = chrome.runtime.getURL('icons/icon32.png');
+    icon.src = chrome.runtime.getURL('icons/icon48.png');
     icon.alt = '';
-    icon.width = icon.height = 32;
+    icon.width = icon.height = 40;
     const identity = el('div', '', 'dh-identity');
-    identity.append(el('strong', 'DeckyHub Security'), el('span', data.app.name, 'dh-muted'));
+    identity.append(el('h2', data.app.name, 'dh-title'), el('span', 'DeckyHub Security', 'dh-muted'));
     brand.append(icon, identity);
     head.append(brand);
     if (typeof data.app.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(data.app.id)) {
-      const link = el('a', 'View on DeckyHub ↗');
+      const link = el('a', 'View on DeckyHub ↗', 'dh-site-link');
       link.href = `https://deckyhub.com/plugins/${encodeURIComponent(data.app.id)}.html`;
       link.target = '_blank'; link.rel = 'noopener noreferrer';
       const install = el('a', 'Send to device (preview) ↗', 'dh-install-link');

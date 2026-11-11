@@ -1,12 +1,14 @@
 .dh-panel { box-sizing: border-box; margin: 16px auto; padding: 16px 20px; max-width: 1280px; border: 1px solid var(--borderColor-default, #d0d7de); border-radius: 8px; background: var(--bgColor-default, #fff); color: var(--fgColor-default, #1f2328); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 .dh-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; }
-.dh-head strong { font-size: 16px; }
+.dh-panel .dh-title { margin: 0; padding: 0; border: 0; font-size: 17px; line-height: 1.3; }
 .dh-brand, .dh-actions { display: flex; align-items: center; gap: 10px; }
 .dh-brand { min-width: 0; }
-.dh-icon { flex: none; }
+.dh-icon { flex: none; border-radius: 10px; }
 .dh-identity { display: grid; gap: 1px; overflow-wrap: anywhere; }
 .dh-actions { flex-wrap: wrap; }
 .dh-panel a { color: var(--fgColor-accent, #0969da); }
+.dh-panel .dh-site-link { padding: 6px 8px; }
+.dh-panel a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
 .dh-panel .dh-install-link { display: inline-flex; align-items: center; padding: 6px 10px; border: 1px solid var(--borderColor-accent-muted, #54aeff66); border-radius: 6px; background: var(--bgColor-accent-muted, #ddf4ff); font-weight: 600; }
 .dh-panel .dh-install-link:hover { border-color: currentColor; }
 .dh-muted, .dh-footnote { color: var(--fgColor-muted, #656d76); font-size: 12px; }
@@ -17,8 +19,12 @@
 .dh-good { color: var(--fgColor-success, #1a7f37); }
 .dh-warning, .dh-unknown { color: var(--fgColor-attention, #9a6700); }
 .dh-danger { color: var(--fgColor-danger, #cf222e); }
-.dh-channel { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--borderColor-muted, #d8dee4); }
+.dh-channel { margin-top: 12px; padding: 12px; border: 1px solid var(--borderColor-muted, #d8dee4); border-radius: 8px; background: var(--bgColor-muted, #f6f8fa); }
 .dh-release { font-weight: 600; overflow-wrap: anywhere; }
-.dh-scan { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 5px; }
+.dh-scan { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 8px 0; }
 .dh-detail, .dh-notice, .dh-footnote { margin: 8px 0 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .dh-panel { padding: 12px; }
+  .dh-actions { width: 100%; }
+}
 
