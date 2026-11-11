@@ -112,7 +112,7 @@
       }
     }
     if (items.childNodes.length) {
-      notes.append(el('strong', 'Warnings'), items, el('p', 'Audit findings indicate potential concerns and are not proof of harm.', 'dh-footnote'));
+      notes.append(el('h3', 'Audit warnings', 'dh-section-title'), items, el('p', 'Audit findings indicate potential concerns and are not proof of harm.', 'dh-footnote'));
       if (Array.isArray(data.stats?.warnings) && data.stats.warnings.length || Array.isArray(data.stats?.prereleaseWarnings) && data.stats.prereleaseWarnings.length) {
         const audit = el('a', 'View audit ↗'); audit.href = 'https://decky-extended-plugins.beallio.com/audit';
         audit.target = '_blank'; audit.rel = 'noopener noreferrer'; notes.append(audit);
@@ -121,19 +121,22 @@
     }
     const channels = data.scans || {};
     if (!channels.stable && !channels.prerelease) panel.append(el('p', 'No release scan report available yet.', 'dh-muted'));
+    const reports = el('div', '', 'dh-reports');
     for (const [key, label] of [['stable', 'Stable'], ['prerelease', 'Pre-release']]) {
       const channel = channels[key]; if (!channel) continue;
       const section = el('div', '', 'dh-channel');
-      section.append(el('div', `${label} · ${channel.tag || 'Unknown release'}${channel.file ? ` · ${channel.file}` : ''}`, 'dh-release'));
+      section.append(el('h3', `${label} · ${channel.tag || 'Unknown release'}`, 'dh-release'));
+      if (channel.file) section.append(el('p', channel.file, 'dh-file'));
       scanner(section, 'ClamAV', channel.clamav); scanner(section, 'YARA', channel.yara);
       virusTotal(section, data.virusTotal?.[key], data.virusTotalAvailable);
       metaDefender(section, data.metaDefender?.[key], data.metaDefenderAvailable);
       if (/^[a-f0-9]{64}$/i.test(channel.sha256 || '')) {
         const vt = el('a', 'Look up SHA-256 on VirusTotal ↗'); vt.href = `https://www.virustotal.com/gui/file/${channel.sha256}`; vt.target = '_blank'; vt.rel = 'noopener noreferrer'; section.append(vt);
       }
-      panel.append(section);
+      reports.append(section);
     }
-    if (channels.stable || channels.prerelease) {
+    if (reports.childElementCount) {
+      panel.append(reports);
       const raw = el('a', 'Registry ClamAV and YARA reports (all ZIPs) ↗');
       raw.href = 'https://github.com/mazillka/deckyhub-registry/blob/virus-scans/scans.json';
       raw.target = '_blank'; raw.rel = 'noopener noreferrer';

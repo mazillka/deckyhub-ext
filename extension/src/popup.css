@@ -1,9 +1,23 @@
-:root { color-scheme: light dark; font: 14px/1.5 system-ui, sans-serif; }
-body { box-sizing: border-box; width: 304px; margin: 0; padding: 18px; color: CanvasText; background: Canvas; }
-header { display: flex; align-items: center; gap: 10px; }
-h1 { margin: 0; font-size: 17px; }
-p { margin: 12px 0 16px; }
+:root { color-scheme: light dark; font: 14px/1.45 system-ui, sans-serif; }
+body { box-sizing: border-box; width: 340px; margin: 0; padding: 18px; color: CanvasText; background: Canvas; }
+header { display: flex; align-items: center; gap: 12px; }
+header img { border-radius: 12px; }
+h1 { margin: 0; font-size: 19px; }
+p { margin: 14px 0 16px; }
 nav { display: grid; gap: 8px; }
-a { display: flex; justify-content: space-between; padding: 8px 10px; border: 1px solid currentColor; border-radius: 8px; color: LinkText; font-weight: 600; text-decoration: none; }
-a:hover { text-decoration: underline; }
+a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, LinkText 28%, Canvas);
+  border-radius: 10px;
+  background: color-mix(in srgb, LinkText 7%, Canvas);
+  color: LinkText;
+  font-weight: 650;
+  text-decoration: none;
+}
+a:hover { background: color-mix(in srgb, LinkText 13%, Canvas); }
 a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+small { display: block; margin-top: 2px; color: CanvasText; font-size: 12px; font-weight: 400; }
