@@ -13,10 +13,17 @@ type SourceName = keyof typeof SOURCES;
 interface Source { data: any; stale: boolean; error?: string }
 
 const pending = new Map<SourceName, Promise<Source>>();
+// Parsed copies kept while this service worker lives: chrome.storage.local.get() would otherwise
+// deserialize all five files (about 1.4 MB of JSON) again on every lookup.
+const memory = new Map<SourceName, { time: number; data: any }>();
 
 async function load(name: SourceName): Promise<Source> {
   const key = `deckyhub_${name}`;
-  const cached = (await chrome.storage.local.get(key))[key] as { time: number; data: any } | undefined;
+  let cached = memory.get(name);
+  if (!cached) {
+    cached = (await chrome.storage.local.get(key))[key] as { time: number; data: any } | undefined;
+    if (cached) memory.set(name, cached);
+  }
   if (cached && Date.now() - cached.time < TTL) return { data: cached.data, stale: false };
   if (!pending.has(name)) {
     pending.set(name, (async () => {
@@ -25,7 +32,9 @@ async function load(name: SourceName): Promise<Source> {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         if (name === 'catalog' ? !Array.isArray(data.apps) : (name === 'virustotal' || name === 'metadefender') ? !data.reports || typeof data.reports !== 'object' || Array.isArray(data.reports) : !data.plugins || typeof data.plugins !== 'object') throw new Error('Invalid registry data');
-        await chrome.storage.local.set({ [key]: { time: Date.now(), data } });
+        const entry = { time: Date.now(), data };
+        memory.set(name, entry);
+        await chrome.storage.local.set({ [key]: entry });
         return { data, stale: false };
       } catch (error) {
         return { data: cached?.data || null, stale: !!cached, error: String(error) };
