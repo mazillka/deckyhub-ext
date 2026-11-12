@@ -70,7 +70,7 @@ jobs:
       - name: Microsoft Edge Add-ons
         if: always() && env.EDGE_PRODUCT_ID != '' && env.EDGE_API_KEY != ''
         run: |
-          api="https://api.addons.edge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
+          api="https://api.addons.microsoftedge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
           auth=(-H "Authorization: ApiKey $EDGE_API_KEY" -H "X-ClientID: $EDGE_CLIENT_ID")
           upload=$(curl -fsS -D - -o /dev/null -X POST "${auth[@]}" -H "Content-Type: application/zip" \
             --data-binary @packages/deckyhub-security-chromium-"$TAG".zip "$api/draft/package" | tr -d '\r' | awk -F': ' 'tolower($1)=="location"{print $2}')
