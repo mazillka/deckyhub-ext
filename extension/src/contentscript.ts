@@ -115,7 +115,7 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
   // The release the registry scanned for this tag, and whether it is a pre-release.
   function recordFor(data: Lookup, tag?: string): Found | null {
     const channels = data.scans || {};
-    for (const [key, pre] of [['stable', false], ['prerelease', true]] as const) if (channels[key]?.tag === tag) return { record: channels[key] as ScanRecord, pre, channel: key };
+    for (const [key, pre] of [['stable', false], ['prerelease', true]] as const) if (tag && channels[key]?.tag === tag) return { record: channels[key] as ScanRecord, pre, channel: key };
     const found = (channels.releases || []).find(item => item.tag === tag);
     return found ? { record: found, pre: !!found.prerelease } : null;
   }
