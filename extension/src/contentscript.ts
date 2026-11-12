@@ -263,6 +263,15 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
   }
   document.addEventListener('turbo:load', update);
   document.addEventListener('pjax:end', update);
-  new MutationObserver(() => { if (location.href !== lastUrl || (rendered && !document.querySelector('.dh-panel') && document.querySelector('main'))) update(); }).observe(document.documentElement, { childList: true, subtree: true });
+  // GitHub changes the DOM constantly: look at most once per frame instead of on every mutation batch.
+  let watching = false;
+  new MutationObserver(() => {
+    if (watching) return;
+    watching = true;
+    requestAnimationFrame(() => {
+      watching = false;
+      if (location.href !== lastUrl || (rendered && !document.querySelector('.dh-panel') && document.querySelector('main'))) update();
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
   update();
 })();
