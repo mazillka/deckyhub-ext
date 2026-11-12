@@ -25,7 +25,9 @@ export default (env = {}, argv) => {
     browser === "firefox" ? JSON.stringify({ ...JSON.parse(content), ...FIREFOX }, null, 2) : content;
   return {
     mode: argv.mode || "development",
-    entry: { background: "./src/background.js", contentscript: "./src/contentscript.js" },
+    entry: { background: "./src/background.ts", contentscript: "./src/contentscript.ts", popup: "./src/popup.ts" },
+    resolve: { extensions: [".ts", ".js"] },
+    module: { rules: [{ test: /\.ts$/, loader: "ts-loader", options: { compilerOptions: { noEmit: false } }, exclude: /node_modules/ }] },
     output: {
       filename: "[name].js",
       path: path.resolve(browser === "chromium" ? "./dist" : `./dist-${browser}`),
