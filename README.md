@@ -23,6 +23,14 @@ The registry keeps scans for the three newest stable and three newest pre-releas
 
 ## Install
 
+### From your browser's store
+
+- **[Chrome Web Store](https://chromewebstore.google.com/detail/aiibhedbgiineocopdokapoaedeedhkc)**: Chrome, and also Brave, Vivaldi and Opera (Opera can install from the Chrome Web Store with its "Install Chrome Extensions" add-on)
+- **[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/0RDCKCC67NNF)**: Edge
+- **[Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/deckyhub/)**: Firefox
+
+The store listings are new and still in review: a link opens the extension's page once that store has approved it. Until then, use the packages below.
+
 ### From a release (easiest)
 
 Each [release](https://github.com/mazillka/deckyhub-ext/releases) has both packages: `deckyhub-security-chromium-vX.Y.Z.zip` for Chrome, Edge, Opera, Brave and Vivaldi, and `deckyhub-security-firefox-vX.Y.Z.zip` for Firefox.
