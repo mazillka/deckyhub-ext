@@ -13,6 +13,14 @@ A browser extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox. When yo
 
 The registry keeps scans for the three newest stable and three newest pre-releases of each plugin. Older releases show "No scan report for this release."
 
+## Screenshots
+
+![The panel on a repository page](store/screenshots/1-repository-page.png)
+
+![Scan results on the Releases page](store/screenshots/2-releases-page.png)
+
+![The same block on a single release](store/screenshots/3-single-release.png)
+
 ## Install
 
 ### From a release (easiest)
