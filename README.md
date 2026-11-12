@@ -18,7 +18,9 @@ A browser extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox that dis
 2. Open `about:debugging#/runtime/this-firefox` and choose **Load Temporary Add-on**.
 3. Select `extension/dist-firefox/manifest.json`. Firefox 127 or newer is needed, and it removes a temporary add-on when it closes.
 
-Every push also builds both packages: the ZIPs are attached to the run of the **Build** workflow under Actions.
+### Ready-made packages
+
+Each [release](https://github.com/mazillka/deckyhub-ext/releases) has both packages built for you: `deckyhub-security-chromium-vX.Y.Z.zip` for Chrome, Edge, Opera, Brave and Vivaldi, and `deckyhub-security-firefox-vX.Y.Z.zip` for Firefox. Unzip the Chromium one and load the folder as above; in Firefox, pick the ZIP itself under **Load Temporary Add-on**.
 
 ## Data and privacy
 
