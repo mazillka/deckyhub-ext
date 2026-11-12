@@ -9,6 +9,8 @@ name: Publish to stores
 #   Chrome Web Store (also Brave, Vivaldi): CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
 #   Firefox (AMO):                           AMO_JWT_ISSUER, AMO_JWT_SECRET
 #   Microsoft Edge Add-ons:                  EDGE_PRODUCT_ID, EDGE_CLIENT_ID, EDGE_API_KEY
+# Chrome: the package is uploaded to the item as a draft and not published, because the store refuses to publish until the listing
+# (privacy practices, category, language, icon, screenshots, description) is complete: press Submit for review in the dashboard.
 # Opera Add-ons has no upload API: upload deckyhub-security-chromium-<tag>.zip there by hand.
 on:
   workflow_run:
@@ -53,7 +55,7 @@ jobs:
         run: gh release download "$TAG" --pattern 'deckyhub-security-*.zip' --dir packages
       - name: Chrome Web Store
         if: env.CWS_EXTENSION_ID != '' && env.CWS_REFRESH_TOKEN != ''
-        run: npx --yes chrome-webstore-upload-cli@3 upload --source packages/deckyhub-security-chromium-"$TAG".zip --auto-publish
+        run: npx --yes chrome-webstore-upload-cli@3 upload --source packages/deckyhub-security-chromium-"$TAG".zip
         env:
           EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
           CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
@@ -65,7 +67,7 @@ jobs:
         run: |
           git archive --format=zip -o source.zip "$TAG"
           mkdir firefox && unzip -q packages/deckyhub-security-firefox-"$TAG".zip -d firefox
-          npx --yes web-ext@8 sign --source-dir firefox --channel listed --upload-source-code source.zip \
+          npx --yes web-ext@8 sign --source-dir firefox --channel listed --approval-timeout 0 --upload-source-code source.zip \
             --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
       - name: Microsoft Edge Add-ons
         if: always() && env.EDGE_PRODUCT_ID != '' && env.EDGE_API_KEY != ''
