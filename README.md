@@ -1,32 +1,51 @@
-# DeckyHub Security for GitHub
+# Deckyhub for GitHub
 
 [![Support Development & Maintenance](https://img.shields.io/badge/Support_Development_%26_Maintenance-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/mazillka)
 
-A browser extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox that displays DeckyHub registry audit warnings and release ZIP scan results on GitHub repositories listed in the registry. It shows stable and pre-release reports when available, including ClamAV and YARA findings and VirusTotal and MetaDefender engine counts, the scanned release and file, and a VirusTotal hash lookup link. Audit warnings include a separate pre-release label. Runs-as-root is shown when reported by the registry.
+A browser extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox. When you open a GitHub repository that [DeckyHub](https://deckyhub.com) lists as a Decky plugin, it shows what the registry knows about its safety, right on the page.
 
-## Install locally
+## What you see
 
-1. Run `npm ci` and `npm run build-prod` in the `extension` directory (Node.js and npm are required).
-2. Open `chrome://extensions` in Chrome and enable **Developer mode**.
-3. Choose **Load unpacked** and select the `extension/dist` folder.
-   In Edge, Opera, Brave or Vivaldi, open that browser's extensions page instead; the folder is the same.
-4. Visit a listed repository, for example [CSS Loader](https://github.com/DeckThemes/SDH-CssLoader). The panel appears at the top of the repository content. Reload the GitHub page after updating the extension.
+- **On the repository page:** a short panel with the plugin's name, links to its DeckyHub page and **Send to device (experimental)**, and safety badges: runs as root, audit warnings, fork, in the Decky store, made with AI, and the latest virus-scan result.
+- **On the Releases page:** a block under each release with the same links and badges for that release, plus its scan reports: ClamAV, YARA, VirusTotal and MetaDefender, and a VirusTotal lookup by file hash. The links open that exact version on DeckyHub.
+- **On a single release page:** the same block as in the list.
+- **Collapse:** every panel has a Collapse / Expand button. The extension's toolbar popup has a setting to start them collapsed.
 
-### Firefox
+The registry keeps scans for the three newest stable and three newest pre-releases of each plugin. Older releases show "No scan report for this release."
 
-1. Run `npm ci` and `npm run build-firefox` in the `extension` directory.
-2. Open `about:debugging#/runtime/this-firefox` and choose **Load Temporary Add-on**.
-3. Select `extension/dist-firefox/manifest.json`. Firefox 127 or newer is needed, and it removes a temporary add-on when it closes.
+## Install
 
-### Ready-made packages
+### From a release (easiest)
 
-Each [release](https://github.com/mazillka/deckyhub-ext/releases) has both packages built for you: `deckyhub-security-chromium-vX.Y.Z.zip` for Chrome, Edge, Opera, Brave and Vivaldi, and `deckyhub-security-firefox-vX.Y.Z.zip` for Firefox. Unzip the Chromium one and load the folder as above; in Firefox, pick the ZIP itself under **Load Temporary Add-on**.
+Each [release](https://github.com/mazillka/deckyhub-ext/releases) has both packages: `deckyhub-security-chromium-vX.Y.Z.zip` for Chrome, Edge, Opera, Brave and Vivaldi, and `deckyhub-security-firefox-vX.Y.Z.zip` for Firefox.
 
-## Data and privacy
+- **Chromium browsers:** unzip it, open the browser's extensions page (for example `chrome://extensions`), turn on **Developer mode**, choose **Load unpacked** and pick the unzipped folder.
+- **Firefox (127 or newer):** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on** and pick the ZIP. Firefox removes a temporary add-on when it closes.
 
-The extension fetches the public [registry catalog](https://github.com/mazillka/deckyhub-registry), release-index stats, virus-scan summaries, and VirusTotal and MetaDefender reports from `raw.githubusercontent.com`. It caches them in extension-local storage for 30 minutes and uses the last cached copy if a refresh fails. It does not send browsing history to DeckyHub or make a request for each repository. GitHub and the raw data host can receive normal network request information. The VirusTotal link is opened only when clicked; the extension does not upload files or query VirusTotal itself.
+### Build it yourself
 
-Results describe the release ZIP and version named in the panel, not arbitrary source code or other releases. An absent warning does not mean an audit was completed, and a clean scan does not prove a plugin is safe. The extension does not run scans. Data can be delayed, unavailable, or stale; new releases may not yet have reports.
+You need Node.js 22 and npm.
 
+```bash
+cd extension
+npm ci
+npm run build-all     # type-checks, then builds dist/ (Chromium) and dist-firefox/ (Firefox)
+```
 
+Load `extension/dist` (or `extension/dist-firefox/manifest.json` in Firefox) as above. Reload the GitHub page after updating the extension.
 
+Try it on a listed plugin, for example [MWGIH/DeckyMultiFrameGen](https://github.com/MWGIH/DeckyMultiFrameGen/releases).
+
+## Privacy
+
+The extension downloads the public registry files from `raw.githubusercontent.com`: the plugin list, audit stats, virus-scan summaries, and VirusTotal and MetaDefender reports. It keeps them in extension storage for 30 minutes and uses the last copy if a refresh fails. It does not send your browsing history anywhere or make a request per repository. GitHub and the data host see normal network request information. Links to VirusTotal, MetaDefender and DeckyHub open only when you click them; the extension never uploads files or runs scans. The only thing it saves is the "collapse by default" setting.
+
+## What the results mean
+
+Results describe the release ZIP named in the panel, not the plugin's source code or other releases. A missing warning does not mean an audit was done, and a clean scan does not prove a plugin is safe. Data can be late, missing or stale, and a new release may not have reports yet.
+
+Store versions are published from each release by `.github/workflows/stores.yml`; see its header for the secrets it needs.
+
+## For contributors
+
+TypeScript, built with webpack. The source is in `extension/src/`: `background.ts` (fetches and caches registry data), `contentscript.ts` (draws the panels on GitHub), `popup.ts` (the setting), `types.ts` (data shapes). Read [AGENTS.md](AGENTS.md) and the skills in [SKILLS.md](SKILLS.md) before changing anything. There are no automated tests; `npm run typecheck` and a manual check in a browser are the gate.

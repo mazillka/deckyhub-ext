@@ -1,0 +1,84 @@
+name: Publish to stores
+
+# After the Release workflow succeeds for a vX.Y.Z tag, uploads that release's packages to the
+# browser stores whose secrets are set; the others are skipped. Pre-release tags (with a dash)
+# are never published. Run it by hand with a tag to retry one.
+#
+# Secrets (Settings → Secrets and variables → Actions). Create each store listing and make
+# its first submission by hand: the APIs only update an existing listing.
+#   Chrome Web Store (also Brave, Vivaldi): CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
+#   Firefox (AMO):                           AMO_JWT_ISSUER, AMO_JWT_SECRET
+#   Microsoft Edge Add-ons:                  EDGE_PRODUCT_ID, EDGE_CLIENT_ID, EDGE_API_KEY
+# Opera Add-ons has no upload API: upload deckyhub-security-chromium-<tag>.zip there by hand.
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish, for example v1.2.0
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  stores:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+      CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+      CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+      CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+      AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+      AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+      EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+      EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+      EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+    steps:
+      - name: Check the tag
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a stable release tag ($TAG): nothing to publish."; exit 1; }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+          persist-credentials: false
+      - name: Download the release packages
+        run: gh release download "$TAG" --pattern 'deckyhub-security-*.zip' --dir packages
+      - name: Chrome Web Store
+        if: env.CWS_EXTENSION_ID != '' && env.CWS_REFRESH_TOKEN != ''
+        run: npx --yes chrome-webstore-upload-cli@3 upload --source packages/deckyhub-security-chromium-"$TAG".zip --auto-publish
+        env:
+          EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+      - name: Firefox Add-ons
+        if: env.AMO_JWT_ISSUER != '' && env.AMO_JWT_SECRET != ''
+        # AMO needs the source of a bundled add-on, so the repository at the tag goes along.
+        run: |
+          git archive --format=zip -o source.zip "$TAG"
+          mkdir firefox && unzip -q packages/deckyhub-security-firefox-"$TAG".zip -d firefox
+          npx --yes web-ext@8 sign --source-dir firefox --channel listed --upload-source-code source.zip \
+            --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
+      - name: Microsoft Edge Add-ons
+        if: env.EDGE_PRODUCT_ID != '' && env.EDGE_API_KEY != ''
+        run: |
+          api="https://api.addons.edge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
+          auth=(-H "Authorization: ApiKey $EDGE_API_KEY" -H "X-ClientID: $EDGE_CLIENT_ID")
+          upload=$(curl -fsS -D - -o /dev/null -X POST "${auth[@]}" -H "Content-Type: application/zip" \
+            --data-binary @packages/deckyhub-security-chromium-"$TAG".zip "$api/draft/package" | tr -d '\r' | awk -F': ' 'tolower($1)=="location"{print $2}')
+          [[ -n "$upload" ]] || { echo "Edge gave no upload operation" >&2; exit 1; }
+          for _ in $(seq 30); do
+            status=$(curl -fsS "${auth[@]}" "$api/draft/package/operations/$upload" | node -p "JSON.parse(require('fs').readFileSync(0)).status")
+            [[ "$status" == Succeeded ]] && break
+            [[ "$status" == Failed ]] && { echo "Edge rejected the package" >&2; exit 1; }
+            sleep 10
+          done
+          [[ "$status" == Succeeded ]] || { echo "Edge upload still $status" >&2; exit 1; }
+          curl -fsS -X POST "${auth[@]}" -H "Content-Type: application/json" -d "{\"notes\":\"Release $TAG\"}" "$api" -o /dev/null
