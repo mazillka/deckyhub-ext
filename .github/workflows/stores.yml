@@ -23,6 +23,7 @@ on:
 permissions:
   contents: read
 
+# Each store step runs even if an earlier one failed (always()), and the job still ends red so a failure is seen.
 jobs:
   stores:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
@@ -59,7 +60,7 @@ jobs:
           CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
       - name: Firefox Add-ons
-        if: env.AMO_JWT_ISSUER != '' && env.AMO_JWT_SECRET != ''
+        if: always() && env.AMO_JWT_ISSUER != '' && env.AMO_JWT_SECRET != ''
         # AMO needs the source of a bundled add-on, so the repository at the tag goes along.
         run: |
           git archive --format=zip -o source.zip "$TAG"
@@ -67,7 +68,7 @@ jobs:
           npx --yes web-ext@8 sign --source-dir firefox --channel listed --upload-source-code source.zip \
             --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
       - name: Microsoft Edge Add-ons
-        if: env.EDGE_PRODUCT_ID != '' && env.EDGE_API_KEY != ''
+        if: always() && env.EDGE_PRODUCT_ID != '' && env.EDGE_API_KEY != ''
         run: |
           api="https://api.addons.edge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
           auth=(-H "Authorization: ApiKey $EDGE_API_KEY" -H "X-ClientID: $EDGE_CLIENT_ID")
