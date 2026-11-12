@@ -21,3 +21,5 @@ a {
 a:hover { background: color-mix(in srgb, LinkText 13%, Canvas); }
 a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 small { display: block; margin-top: 2px; color: CanvasText; font-size: 12px; font-weight: 400; }
+
+.opt { display: flex; gap: 8px; align-items: center; margin: 12px 0; }

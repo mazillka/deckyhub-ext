@@ -3,18 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DeckyHub Security</title>
+  <title>Deckyhub</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header>
     <img src="icons/icon48.png" width="40" height="40" alt="">
-    <h1>DeckyHub Security</h1>
+    <h1>Deckyhub</h1>
   </header>
   <p>Open a GitHub repository listed in DeckyHub to see its audit warnings and release scan results.</p>
+  <label class="opt"><input type="checkbox" id="collapse"> Collapse panels by default</label>
   <nav aria-label="DeckyHub links">
     <a href="https://deckyhub.com/plugins/" target="_blank" rel="noopener noreferrer"><span>Browse plugins<small>Find Decky plugins and scan reports</small></span><span aria-hidden="true">↗</span></a>
     <a href="https://deckyhub.com/develop/paired-devices.html" target="_blank" rel="noopener noreferrer"><span>Paired devices<small>Pair a device or manage its plugins</small></span><span aria-hidden="true">↗</span></a>
   </nav>
+  <script src="popup.js"></script>
 </body>
 </html>

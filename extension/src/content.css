@@ -60,3 +60,6 @@
 .dh-scan { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 8px 0; border-top: 1px solid var(--borderColor-muted, #d8dee4); }
 .dh-detail, .dh-notice, .dh-footnote { margin: 8px 0 0; overflow-wrap: anywhere; }
 .dh-notice { padding: 8px 10px; border-radius: 6px; background: var(--bgColor-attention-muted, #fff8c5); }
+
+.dh-toggle { margin-left: auto; padding: 2px 10px; border: 1px solid var(--borderColor-default, #d0d7de); border-radius: 6px; background: transparent; color: inherit; font: inherit; font-size: 12px; cursor: pointer; }
+.dh-collapsed > :not(.dh-head) { display: none; }
