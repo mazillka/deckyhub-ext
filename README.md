@@ -49,3 +49,9 @@ Store versions are published from each release by `.github/workflows/stores.yml`
 ## For contributors
 
 TypeScript, built with webpack. The source is in `extension/src/`: `background.ts` (fetches and caches registry data), `contentscript.ts` (draws the panels on GitHub), `popup.ts` (the setting), `types.ts` (data shapes). Read [AGENTS.md](AGENTS.md) and the skills in [SKILLS.md](SKILLS.md) before changing anything. There are no automated tests; `npm run typecheck` and a manual check in a browser are the gate.
+
+## License
+
+Copyright © 2026 Andrii Shevchuk-Yuhanets ([mazillka](https://github.com/mazillka)).
+
+GPL-3.0-or-later: see [LICENSE.md](LICENSE.md).
