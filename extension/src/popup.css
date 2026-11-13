@@ -23,3 +23,8 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 small { display: block; margin-top: 2px; color: CanvasText; font-size: 12px; font-weight: 400; }
 
 .opt { display: flex; gap: 8px; align-items: center; margin: 12px 0; }
+
+/* Ko-fi's own colour, with dark text for contrast (white on it is only 2.4:1) */
+a.kofi { border-color: #ff5e5b; background: #ff5e5b; color: #15100f; }
+a.kofi:hover { background: #ff7673; }
+a.kofi small { color: #15100f; }
