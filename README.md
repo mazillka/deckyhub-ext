@@ -58,7 +58,7 @@ The extension downloads the public registry files from `raw.githubusercontent.co
 
 ## What the results mean
 
-Results describe the release ZIP named in the panel, not the plugin's source code or other releases. A missing warning does not mean an audit was done, and a clean scan does not prove a plugin is safe. Data can be late, missing or stale, and a new release may not have reports yet.
+Results describe the release ZIP named in the panel, not other releases. A source mismatch is very high risk because release code may not match the repository, but an automated mismatch is not proof of maliciousness; review the release and source before installing. A missing warning does not mean an audit was done, and a clean scan does not prove a plugin is safe. An incomplete scan does not establish safety. Data can be late, missing or stale, and a new release may not have reports yet.
 
 Store versions are published from each release by `.github/workflows/stores.yml`; see its header for the secrets it needs.
 
