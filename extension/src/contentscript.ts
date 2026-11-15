@@ -8,7 +8,7 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     blocked: ['Blocked by audit', 'The automated audit classified this release as blocked, for example because of suspected malware or a broken archive.'],
     'private-data': ['Reads private data', 'The audit found code that may access private data, such as Steam login data, SSH keys, or environment secrets.'],
     persistence: ['Changes system startup', 'The audit found code that may change startup behavior, such as shell profiles, kernel modules, or udev rules.'],
-    'not-in-source': ['Very high risk: Download differs from GitHub code', 'The release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.'],
+    'not-in-source': ['Very high risk: Download includes different code than GitHub', 'The release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.'],
     obfuscated: ['Hidden code', 'The audit found encoded, packed, or otherwise obfuscated code.'],
     'no-tls-check': ['Skips HTTPS checks', 'The audit found code that disables HTTPS certificate verification.'],
     'runs-downloads': ['Runs downloaded scripts', 'The audit found code that downloads a script and runs it.'],
@@ -157,7 +157,7 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
         || (record === data.scans?.prerelease && Array.isArray(stats.prereleaseWarnings) && stats.prereleaseWarnings.includes('not-in-source'));
       if (hashValid && sourceFindings.length && !communityCoversRecord) {
         const sources = Array.from(new Set(sourceFindings.map(f => `${f.rule}: ${f.path}`))).join('; ');
-        add('Very high risk: Download differs from GitHub code', 'danger', `The audit could not match code in release ZIP ${record.file || 'the ZIP'} (${record.tag}): ${sources}. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.`);
+        add('Very high risk: Download includes different code than GitHub', 'danger', `The audit could not match code in release ZIP ${record.file || 'the ZIP'} (${record.tag}): ${sources}. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.`);
       }
       if (!record.clamav) continue;
       const counts = externalCounts(data, record);
