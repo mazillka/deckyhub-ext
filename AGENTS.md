@@ -6,7 +6,7 @@ This repository contains a Manifest V3 browser extension (Chromium browsers and 
 - `extension/src/contentscript.ts` observes GitHub navigation and renders the panels (repo page, release list cards, single release); `extension/src/content.css` styles them.
 - `extension/src/popup.ts`, `popup.html` and `popup.css` are the toolbar popup with the "collapse by default" setting (`chrome.storage.local`, key `deckyhub_collapse`).
 - `extension/manifest.json` declares permissions and entry points; `extension/webpack.config.mjs` builds with ts-loader and creates the unpacked build and ZIP per browser, and adds what only Firefox's manifest needs (`FIREFOX` there).
-- Skills are in `.agents/skills/` (index: [SKILLS.md](SKILLS.md)): `extension-development`, `registry-data`, `badge-parity`, `manual-testing`, `release-extension`. Read the public README when changing installation, privacy or user-visible behavior.
+- Skills are in `.agents/skills/` (index: [SKILLS.md](SKILLS.md)): `extension-development`, `registry-data`, `badge-parity`, `manual-testing`, `release-extension`, `update-dependencies` (run it before every release and keep packages and pinned Actions current). Read the public README when changing installation, privacy or user-visible behavior.
 
 From `extension/`, run `npm ci` and `npm run build-all`: it type-checks (`npm run typecheck`, `tsc --noEmit`) and builds both packages. TypeScript is pinned to 5.x because ts-loader does not run on TypeScript 7. There is no automated test script: for behavior changes follow `manual-testing` and report what you could not check. CI builds both packages on Node 22 and keeps each ZIP as a workflow artifact.
 

@@ -9,3 +9,4 @@ Project skills live in `.agents/skills/`. Read the one that fits the task.
 | [badge-parity](.agents/skills/badge-parity/SKILL.md) | adding or rewording a badge, warning or scan label |
 | [manual-testing](.agents/skills/manual-testing/SKILL.md) | checking a change in a real browser |
 | [release-extension](.agents/skills/release-extension/SKILL.md) | cutting a release |
+| [update-dependencies](.agents/skills/update-dependencies/SKILL.md) | updating npm packages or GitHub Actions, before a release, or after a security alert |
