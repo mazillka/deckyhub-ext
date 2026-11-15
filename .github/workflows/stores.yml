@@ -9,9 +9,14 @@ name: Publish to stores
 #   Chrome Web Store (also Brave, Vivaldi): CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
 #   Firefox (AMO):                           AMO_JWT_ISSUER, AMO_JWT_SECRET
 #   Microsoft Edge Add-ons:                  EDGE_PRODUCT_ID, EDGE_CLIENT_ID, EDGE_API_KEY
+#   Opera Add-ons:                           OPERA_PACKAGE_ID, OPERA_SESSIONID, OPERA_CSRFTOKEN
 # Chrome: the package is uploaded to the item as a draft and not published, because the store refuses to publish until the listing
 # (privacy practices, category, language, icon, screenshots, description) is complete: press Submit for review in the dashboard.
-# Opera Add-ons has no upload API: upload deckyhub-security-chromium-<tag>.zip there by hand.
+# Opera Add-ons has no official API. web-ext-deploy (pinned) uploads the Chromium package with the dashboard's own session
+# cookies: OPERA_SESSIONID and OPERA_CSRFTOKEN are the `sessionid` and `csrftoken` cookies of a logged-in
+# addons.opera.com/developer session, and OPERA_PACKAGE_ID is the number in addons.opera.com/developer/package/<id>.
+# The cookies expire (about a day, by one report): when this step fails with a login error, copy fresh values into the
+# secrets and re-run the workflow with the tag. Opera's reviewers read the source from this public repository.
 on:
   workflow_run:
     workflows: [Release]
@@ -43,6 +48,9 @@ jobs:
       EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
       EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
       EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+      OPERA_PACKAGE_ID: ${{ secrets.OPERA_PACKAGE_ID }}
+      OPERA_SESSIONID: ${{ secrets.OPERA_SESSIONID }}
+      OPERA_CSRFTOKEN: ${{ secrets.OPERA_CSRFTOKEN }}
     steps:
       - name: Check the tag
         run: |
@@ -85,3 +93,15 @@ jobs:
           done
           [[ "$status" == Succeeded ]] || { echo "Edge upload still $status" >&2; exit 1; }
           curl -fsS -X POST "${auth[@]}" -H "Content-Type: application/json" -d "{\"notes\":\"Release $TAG\"}" "$api" -o /dev/null
+      - name: Opera Add-ons
+        if: always() && env.OPERA_PACKAGE_ID != '' && env.OPERA_SESSIONID != ''
+        # web-ext-deploy reads opera.env; it is written here from the secrets and never committed.
+        run: |
+          {
+            echo "SESSIONID=$OPERA_SESSIONID"
+            echo "CSRFTOKEN=$OPERA_CSRFTOKEN"
+            echo "PACKAGE_ID=$OPERA_PACKAGE_ID"
+            echo "ZIP=packages/deckyhub-security-chromium-$TAG.zip"
+          } > opera.env
+          npx --yes web-ext-deploy@1.1.3 env --publish-only opera
+          rm -f opera.env
