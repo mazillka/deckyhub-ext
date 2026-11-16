@@ -109,7 +109,8 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     install.href = `https://deckyhub.com/develop/plugins/${encodeURIComponent(id)}.html${tag ? `?tag=${encodeURIComponent(tag)}` : ''}#remote-install`;
     install.target = '_blank'; install.rel = 'noopener noreferrer';
     const actions = el('div', '', 'dh-actions');
-    actions.append(link, install);
+    actions.append(link);
+    if (data.app?.store !== true) actions.append(install);
     return actions;
   }
   // The release the registry scanned for this tag, and whether it is a pre-release.
@@ -180,6 +181,10 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     const head = el('div', '', 'dh-head'), actions = siteLinks(data, tag);
     head.append(brandBlock(data.app?.name || '')); if (actions) head.append(actions);
     toggle(block, head); block.append(head);
+    if (data.app?.store === true) {
+      block.append(el('p', 'This plugin is available through the Decky Store. Install it from Decky Loader’s Store. DeckyHub does not scan the store version.', 'dh-notice'));
+      return block;
+    }
     // Audit warnings are kept per channel; they belong to the release that channel's scan names.
     const found = recordFor(data, tag);
     const fields: ['warnings' | 'prereleaseWarnings', string][] = found?.channel === 'stable' ? [['warnings', '']] : found?.channel === 'prerelease' ? [['prereleaseWarnings', '']] : [];
@@ -242,6 +247,11 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     head.append(brand);
     const actions = siteLinks(data); if (actions) head.append(actions);
     toggle(panel, head); panel.append(head);
+    if (data.app.store === true) {
+      panel.append(el('p', 'This plugin is available through the Decky Store. Install it from Decky Loader’s Store. DeckyHub does not scan the store version.', 'dh-notice'));
+      target.prepend(panel); rendered = true;
+      return;
+    }
     const notes = el('section', '', 'dh-warnings');
     const latest = [recordFor(data, data.scans?.stable?.tag), recordFor(data, data.scans?.prerelease?.tag)].filter((item, index, list): item is Found => !!item && list.findIndex(other => other?.record === item.record) === index);
     const items = badgeList(data, { all: true, fields: [['warnings', ''], ['prereleaseWarnings', 'Pre-release: ']], scans: latest });
