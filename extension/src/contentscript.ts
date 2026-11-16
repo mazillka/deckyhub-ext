@@ -266,7 +266,7 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
       panel.append(notes);
     }
     // No scan record at all must not read as all clear.
-    if (!data.scans && !data.unavailable?.includes('scan data')) panel.append(el('p', 'Not scanned yet. The registry has no virus scan for this plugin’s releases, so nothing is known about them. New releases are usually scanned within a few hours.', 'dh-notice'));
+    if (!data.scans && !data.unavailable?.includes('scan data')) panel.append(el('p', 'Not scanned yet. The registry has no virus scan result for this plugin’s releases, so this panel can’t tell you anything about them, either way.', 'dh-notice'));
     // Repo page: general info only. Scan reports belong to each release.
     panel.append(el('p', 'Open a release to see its scan reports. Audit warnings indicate potential concerns and are not proof of harm.', 'dh-footnote'));
     notices(data, panel);
