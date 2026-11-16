@@ -143,6 +143,7 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     if (stats.root === true) add('Runs as root', 'warning', 'The plugin backend runs with root privileges and can read or change system files and user data. Some plugins need this access.');
     if (all && typeof stats.fork === 'string') add('Fork', 'unknown', `A fork of ${stats.fork}: its code started as a copy of that project.`);
     if (all && stats.store) add('In Decky store', 'unknown', 'The Decky store lists a plugin with this name. The store names no repository, so check that it is this one.');
+    if (all && stats.rust === true) add('Rust', 'unknown', 'Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.');
     if (all && Array.isArray(stats.ai) && stats.ai.length) add('AI', 'unknown', `Its repository has instructions for AI coding assistants, or says it is made with AI (${stats.ai.join(', ')}). That says nothing about its quality or safety.`);
     for (const [field, prefix] of fields) {
       const codes = stats[field];
