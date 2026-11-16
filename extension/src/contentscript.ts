@@ -135,6 +135,11 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     const items = el('ul', '', 'dh-warning-list');
     const add = (text: string, kind: string, description: string) => { const item = el('li'); item.append(el('span', text, `dh-badge dh-${kind}`), document.createTextNode(` ${description}`)); items.append(item); };
     const stats: Stats = data.stats || {};
+    // Store-only entries (registry `store: true`) carry no other badge: nothing here is installed from GitHub.
+    if (data.app?.store === true) {
+      if (all && stats.store) add('In Decky store', 'unknown', 'The Decky store lists a plugin with this name. The store names no repository, so check that it is this one.');
+      return items.childNodes.length ? items : null;
+    }
     if (stats.root === true) add('Runs as root', 'warning', 'The plugin backend runs with root privileges and can read or change system files and user data. Some plugins need this access.');
     if (all && typeof stats.fork === 'string') add('Fork', 'unknown', `A fork of ${stats.fork}: its code started as a copy of that project.`);
     if (all && stats.store) add('In Decky store', 'unknown', 'The Decky store lists a plugin with this name. The store names no repository, so check that it is this one.');
