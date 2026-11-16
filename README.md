@@ -4,6 +4,8 @@
 
 A browser extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox. When you open a GitHub repository that [DeckyHub](https://deckyhub.com) lists as a Decky plugin, it shows what the registry knows about its safety, right on the page.
 
+Safari isn't supported yet: it needs the extension wrapped in an Xcode app, which hasn't been built or tested.
+
 ## What you see
 
 - **On the repository page:** a short panel with the plugin's name, links to its DeckyHub page and **Send to device (experimental)**, and safety badges: runs as root, audit warnings, fork, in the Decky store, made with AI, and the latest virus-scan result.
