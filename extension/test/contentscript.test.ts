@@ -112,7 +112,7 @@ test('a missing report is never described as clean', async () => {
 });
 
 test('unavailable data and a stale cache are stated', async () => {
-  const document = await open('/o/r', lookup({ unavailable: ['audit data'], stale: true }));
+  const document = await open('/o/r', lookup({ scans, unavailable: ['audit data'], stale: true }));
   assert.deepEqual(text(document, '.dh-notice'), ['Unavailable: audit data.', 'Showing cached data because the registry could not be reached.']);
 });
 
@@ -196,4 +196,22 @@ test('store-only plugins direct users to the Decky Store and hide old GitHub rep
     assert.equal(panel.querySelector('.dh-scan'), null, path);
     assert.equal(panel.querySelector('.dh-install-link'), null, path);
   }
+});
+
+test('a repo with no scan record says it is not scanned yet, and one with a scan does not', async () => {
+  let document = await open('/o/r', lookup());
+  assert.match(text(document, '.dh-notice').join(' '), /Not scanned yet/);
+  document = await open('/o/r', lookup({ scans }));
+  assert.doesNotMatch(text(document, '.dh-notice').join(' '), /Not scanned yet/);
+  // Scan data that failed to load is "unavailable", not "not scanned".
+  document = await open('/o/r', lookup({ unavailable: ['scan data'] }));
+  assert.doesNotMatch(text(document, '.dh-notice').join(' '), /Not scanned yet/);
+});
+
+test('a pre-release page explains what a pre-release is, a stable release does not', async () => {
+  const pre = { prerelease: { tag: 'v2-rc', sha256: SHA, clamav: { result: 'clean' } } };
+  let document = await open('/o/r/releases/tag/v2-rc', lookup({ scans: pre }), { html: '<main><div class="Box-body"></div></main>' });
+  assert.match(document.querySelector('.dh-warning-list')!.textContent!, /pre-release, so it may be unfinished or buggy/);
+  document = await open('/o/r/releases/tag/v1.0', lookup({ scans }), { html: '<main><div class="Box-body"></div></main>' });
+  assert.doesNotMatch(document.querySelector('.dh-panel')!.textContent!, /unfinished or buggy/);
 });

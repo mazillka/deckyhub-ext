@@ -148,6 +148,8 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
         add(prefix + title, code === 'blocked' || code === 'not-in-source' ? 'danger' : 'warning', description);
       }
     }
+    // What a pre-release is, for the release it describes: the repo page lists the latest of both channels.
+    if (!all && scans.some(({ pre }) => pre)) add('Pre-release', 'warning', 'This is a pre-release, so it may be unfinished or buggy. DeckyHub installs it only if you choose its Pre-release channel.');
     const names: Record<string, string> = { clean: 'no threats found', infected: 'threat found', incomplete: 'only partly scanned', error: "couldn't be scanned" };
     for (const { record, pre } of scans) {
       const sourceFindings = Array.isArray(record.audit?.source?.findings)
@@ -263,6 +265,8 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
       }
       panel.append(notes);
     }
+    // No scan record at all must not read as all clear.
+    if (!data.scans && !data.unavailable?.includes('scan data')) panel.append(el('p', 'Not scanned yet. The registry has no virus scan for this plugin’s releases, so nothing is known about them. New releases are usually scanned within a few hours.', 'dh-notice'));
     // Repo page: general info only. Scan reports belong to each release.
     panel.append(el('p', 'Open a release to see its scan reports. Audit warnings indicate potential concerns and are not proof of harm.', 'dh-footnote'));
     notices(data, panel);
