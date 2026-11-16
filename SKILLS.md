@@ -10,3 +10,5 @@ Project skills live in `.agents/skills/`. Read the one that fits the task.
 | [manual-testing](.agents/skills/manual-testing/SKILL.md) | checking a change in a real browser |
 | [release-extension](.agents/skills/release-extension/SKILL.md) | cutting a release |
 | [update-dependencies](.agents/skills/update-dependencies/SKILL.md) | updating npm packages or GitHub Actions, before a release, or after a security alert |
+| [regression-guard](.agents/skills/regression-guard/SKILL.md) | finishing any change: every page, both browsers, parity with the plugin and site, and a test that fails without the fix |
+| [safe-edits](.agents/skills/safe-edits/SKILL.md) | bulk-editing with a script, committing, pushing, bumping a version or tagging |
