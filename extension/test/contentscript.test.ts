@@ -121,6 +121,7 @@ test('a source mismatch is a very-high-risk badge naming the files, unless the a
   let document = await open('/o/r', lookup({ scans: mismatch, stats: {} }));
   const risk = [...document.querySelectorAll('.dh-warning-list li')].find(li => li.textContent!.includes('Very high risk'));
   assert.ok(risk?.querySelector('.dh-danger'));
+  assert.match(risk!.textContent!, /Very high risk: Download includes code that is not in GitHub/);
   assert.match(risk!.textContent!, /source_file_differs: main\.py/);
   assert.doesNotMatch(risk!.textContent!, /other: x/);
   document = await open('/o/r', lookup({ scans: mismatch, stats: { warnings: ['not-in-source'] } }));
@@ -176,4 +177,23 @@ test('VirusTotal and MetaDefender reports that do not add up are not trusted', a
   const badges = text(document, '.dh-scan .dh-badge');
   assert.equal(badges.filter(badge => badge === 'Invalid report').length, 2);
   assert.ok(!badges.some(badge => badge!.includes('engines flagged')));
+});
+
+test('store-only plugins direct users to the Decky Store and hide old GitHub reports and install links', async () => {
+  const old = lookup({ app: { ...app, store: true }, stats: { root: true, warnings: ['not-in-source'] }, scans, external, virusTotalAvailable: true, metaDefenderAvailable: true });
+  const paths = [
+    ['/o/r', '<main></main>'],
+    ['/o/r/releases/tag/v1.0', '<main><div class="Box-body"></div></main>'],
+    ['/o/r/releases', '<main><div class="Box-body"><a href="/o/r/releases/tag/v1.0">v1.0</a></div></main>'],
+  ];
+  for (const [path, html] of paths) {
+    const document = await open(path, old, { html });
+    const panel = document.querySelector('.dh-panel');
+    assert.ok(panel, path);
+    assert.match(panel.textContent!, /available through the Decky Store/);
+    assert.match(panel.textContent!, /does not scan the store version/);
+    assert.equal(panel.querySelector('.dh-warning-list'), null, path);
+    assert.equal(panel.querySelector('.dh-scan'), null, path);
+    assert.equal(panel.querySelector('.dh-install-link'), null, path);
+  }
 });
