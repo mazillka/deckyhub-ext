@@ -9,7 +9,7 @@ The extension, the plugin pages on deckyhub.com (`deckyhub-plugin/devtools/plugi
 
 - Audit warning codes and their titles live in the `warnings` table in `extension/src/contentscript.ts`; the registry's `audit_rules.py` defines the codes. An unknown code must still render (generic text), never throw.
 - Scan wording: No threats / Threat found / Not fully scanned; "Pre-release:" prefix; every scan badge ends "A clean scan isn't proof of safety". Never call a missing report clean.
-- Badges: Runs as root, Fork, In Decky store, AI, audit warnings, scan result. `blocked` is the only danger-level warning.
+- Badges: Runs as root, Fork, In Decky store, AI, Rust, audit warnings, scan result. `blocked` is the only danger-level warning.
 - The extension adds nothing the site doesn't say, and nothing stronger.
 
 Registry data it reads is described in [registry-data](../registry-data/SKILL.md). Wording changes go through the user, since they speak for the whole project.

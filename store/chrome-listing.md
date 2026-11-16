@@ -18,7 +18,7 @@ Dashboard: https://chrome.google.com/webstore/devconsole (open the Deckyhub item
 
 > Deckyhub shows what the DeckyHub registry knows about a Decky Loader plugin right on its GitHub page.
 >
-> • Repository page: safety badges (runs as root, audit warnings, fork, listed in the Decky store, made with AI, latest virus-scan result) and links to the plugin's DeckyHub page.
+> • Repository page: safety badges (runs as root, audit warnings, fork, listed in the Decky store, made with AI, written in Rust, latest virus-scan result) and links to the plugin's DeckyHub page.
 > • Releases page and each release: a block per release with its audit warnings and ClamAV, YARA, VirusTotal and MetaDefender scan results, and links that open that exact version on DeckyHub, including "Send to device (experimental)".
 > • Every panel can be collapsed, and a setting in the toolbar popup starts them collapsed.
 >
