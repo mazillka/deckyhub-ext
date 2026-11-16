@@ -171,9 +171,9 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
       if (!record.clamav) continue;
       const counts = externalCounts(data, record);
       const results = [record.clamav.result, record.yara?.result].filter((value): value is string => !!value).concat(counts.map(([, flagged]) => (flagged ? 'infected' : 'clean')));
-      // No threats only once all four scanners (ClamAV, YARA, VirusTotal, MetaDefender) have reported and none flagged it; two clean reports out of four say less than that.
+      // Nothing flagged only once all four scanners (ClamAV, YARA, VirusTotal, MetaDefender) have reported and none flagged it; two clean reports out of four say less than that.
       const kind = results.includes('infected') ? 'infected' : results.length >= 4 && results.every(result => result === 'clean') ? 'clean' : 'partial';
-      const label = { clean: ['No threats', 'good'], infected: ['Threat found', 'danger'], partial: ['Not fully scanned', 'warning'] }[kind] as [string, string];
+      const label = { clean: ['Nothing flagged', 'good'], infected: ['Threat found', 'danger'], partial: ['Not fully scanned', 'warning'] }[kind] as [string, string];
       const detail = ([['ClamAV', record.clamav], ['YARA', record.yara]] as [string, Verdict | undefined][]).filter((pair): pair is [string, Verdict] => !!pair[1])
         .map(([name, scan]) => `${name}: ${(scan.result && names[scan.result]) || scan.result}${Array.isArray(scan.found) && scan.found.length ? ` (${scan.found.join(', ')})` : ''}`)
         .concat(counts.map(([name, flagged, total]) => `${name}: ${flagged} of ${total} engines flagged it`)).join('; ');
