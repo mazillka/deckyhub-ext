@@ -9,6 +9,8 @@ export interface External { virusTotal: VirusTotalReport | null; metaDefender: M
 // What background.ts answers a "deckyhub:lookup" message with.
 export interface Lookup {
   app?: App | null;
+  // The registry's other plugins by the same GitHub account (the registry has no author field of its own).
+  more?: Pick<App, 'id' | 'name'>[];
   catalogAvailable: boolean;
   stats?: Stats | null;
   scans?: Scans | null;

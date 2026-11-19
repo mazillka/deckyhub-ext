@@ -5,7 +5,13 @@ type Listener = (message: unknown, sender: unknown, send: (response: any) => voi
 
 const SHA = 'a'.repeat(64);
 const files: Record<string, unknown> = {
-  'main/registry/apps.json': { apps: [{ id: 'one', name: 'One', repo: 'Owner/One' }] },
+  'main/registry/apps.json': {
+    apps: [
+      { id: 'one', name: 'One', repo: 'Owner/One' },
+      { id: 'two', name: 'Two', repo: 'owner/Two' },
+      { id: 'other', name: 'Other', repo: 'someone/Other' }
+    ]
+  },
   'release-index/stats.json': { plugins: { 'owner/one': { root: true, warnings: ['obfuscated'] } } },
   'virus-scans/plugins.json': {
     plugins: { 'owner/one': { stable: { tag: 'v1', sha256: SHA.toUpperCase() }, releases: [{ tag: 'v0', sha256: 'abc123' }] } }
@@ -67,6 +73,13 @@ test('answers with the plugin, its stats and scans, whatever the case of the rep
   assert.equal(answer.scans.stable.tag, 'v1');
   assert.deepEqual(answer.unavailable, []);
   assert.equal(answer.stale, false);
+});
+
+test('lists the other registry plugins by the same owner, never the plugin itself or another owner', async () => {
+  const answer = await lookup('OWNER/one');
+  assert.deepEqual(answer.more, [{ id: 'two', name: 'Two' }]);
+  assert.deepEqual((await lookup('someone/Other')).more, []);
+  assert.deepEqual((await lookup('nobody/nothing')).more, []);
 });
 
 test('attaches external reports only for valid SHA-256 hashes, by lowercase hash', async () => {

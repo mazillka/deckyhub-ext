@@ -49,9 +49,11 @@ chrome.runtime.onMessage.addListener((message: { type?: string; repo?: string },
   Promise.all((Object.keys(SOURCES) as SourceName[]).map(load)).then(([catalog, stats, scans, virustotal, metadefender]) => {
     const repo = (message.repo as string).toLowerCase();
     const plugin: (Scans & { stable?: { sha256?: string } }) | undefined = scans.data?.plugins?.[repo];
+    const owner = repo.split('/')[0];
     sendResponse({
       app: catalog.data?.apps.find((app: App) => typeof app.repo === 'string' && app.repo.toLowerCase() === repo) || null,
       catalogAvailable: !!catalog.data,
+      more: (catalog.data?.apps as App[] | undefined ?? []).filter(app => typeof app.repo === 'string' && app.repo.toLowerCase() !== repo && app.repo.toLowerCase().split('/')[0] === owner && typeof app.id === 'string' && typeof app.name === 'string').slice(0, 8).map(({ id, name }) => ({ id, name })),
       stats: stats.data?.plugins?.[repo] || null,
       scans: scans.data?.plugins?.[repo] || null,
       // External reports by lowercase SHA-256, for every scanned release (stable, pre-release and the kept history).

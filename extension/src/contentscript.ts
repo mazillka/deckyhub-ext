@@ -113,6 +113,22 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     if (data.app?.store !== true) actions.append(install);
     return actions;
   }
+  // The registry's other plugins by this repository's owner, linked to their DeckyHub pages (names are text; an id that is not a slug gets no link).
+  function moreFromAuthor(data: Lookup, owner: string) {
+    const items = (data.more || []).filter(item => typeof item?.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(item.id) && typeof item.name === 'string');
+    if (!items.length) return null;
+    const section = el('section', '', 'dh-more');
+    section.append(el('h3', `More from ${owner} on DeckyHub`, 'dh-section-title'));
+    const list = el('ul', '', 'dh-more-list');
+    for (const item of items) {
+      const link = el('a', item.name);
+      link.href = `https://deckyhub.com/plugins/${encodeURIComponent(item.id as string)}.html`;
+      link.target = '_blank'; link.rel = 'noopener noreferrer';
+      const row = el('li'); row.append(link); list.append(row);
+    }
+    section.append(list);
+    return section;
+  }
   // The release the registry scanned for this tag, and whether it is a pre-release.
   function recordFor(data: Lookup, tag?: string): Found | null {
     const channels = data.scans || {};
@@ -255,8 +271,10 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     head.append(brand);
     const actions = siteLinks(data); if (actions) head.append(actions);
     toggle(panel, head); panel.append(head);
+    const more = moreFromAuthor(data, location.pathname.split('/').filter(Boolean)[0]);
     if (data.app.store === true) {
       panel.append(el('p', 'This plugin is available through the Decky Store. Install it from Decky Loader’s Store. DeckyHub does not scan the store version.', 'dh-notice'));
+      if (more) panel.append(more);
       target.prepend(panel); rendered = true;
       return;
     }
@@ -275,6 +293,7 @@ interface Found { record: ScanRecord; pre: boolean; channel?: 'stable' | 'prerel
     if (!data.scans && !data.unavailable?.includes('scan data')) panel.append(el('p', 'Not scanned yet. The registry has no virus scan result for this plugin’s releases, so this panel can’t tell you anything about them, either way.', 'dh-notice'));
     // Repo page: general info only. Scan reports belong to each release.
     panel.append(el('p', 'Open a release to see its scan reports. Audit warnings indicate potential concerns and are not proof of harm.', 'dh-footnote'));
+    if (more) panel.append(more);
     notices(data, panel);
     target.prepend(panel); rendered = true;
   }
