@@ -40,6 +40,8 @@
   border-radius: 8px;
   background: var(--bgColor-attention-muted, #fff8c5);
 }
+.dh-more-list { margin: 6px 0 0; padding-inline-start: 20px; }
+.dh-more-list li + li { margin-top: 3px; }
 .dh-warning-list { margin: 6px 0 0; padding-inline-start: 20px; }
 .dh-warning-list li + li { margin-top: 5px; }
 .dh-badge { border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 650; }

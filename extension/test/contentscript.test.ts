@@ -45,6 +45,16 @@ test('a repo page asks the background for that repo and shows a panel', async ()
   assert.equal(document.querySelector('.dh-title')?.textContent, 'My Plugin');
 });
 
+test('the repo page lists more plugins by its owner, linked to DeckyHub, and shows nothing when there are none', async () => {
+  const more = [{ id: 'second', name: 'Second <b>one</b>' }, { id: '../evil', name: 'Evil' }, { id: 'third', name: 'Third' }];
+  const document = await open('/o/r', lookup({ more }));
+  assert.equal(document.querySelector('.dh-more .dh-section-title')?.textContent, 'More from o on DeckyHub');
+  assert.deepEqual(text(document, '.dh-more-list a'), ['Second <b>one</b>', 'Third']);
+  assert.equal(document.querySelector('.dh-more-list b'), null);
+  assert.deepEqual([...document.querySelectorAll<HTMLAnchorElement>('.dh-more-list a')].map(link => link.href), ['https://deckyhub.com/plugins/second.html', 'https://deckyhub.com/plugins/third.html']);
+  assert.equal((await open('/o/r', lookup({ more: [] }))).querySelector('.dh-more'), null);
+});
+
 test('pages that are not a repo, its releases or a release ask for nothing', async () => {
   for (const path of ['/', '/o', '/o/r/issues', '/o/r/pulls/3', '/o/r/releases/tag']) {
     const document = await open(path, lookup());
