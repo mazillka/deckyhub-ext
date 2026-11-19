@@ -138,6 +138,18 @@ test('a source mismatch is a very-high-risk badge naming the files, unless the a
   assert.equal(text(document, '.dh-warning-list .dh-badge').filter(badge => badge!.includes('Very high risk')).length, 1);
 });
 
+test('two clean scans out of four are Not fully scanned, and all four clean are Nothing flagged', async () => {
+  const twoOfFour = { stable: { tag: 'v1.0', file: 'p.zip', sha256: SHA, clamav: { result: 'clean' }, yara: { result: 'clean' } }, releases: [] };
+  let document = await open('/o/r/releases/tag/v1.0', lookup({ scans: twoOfFour, stats: {} }), { html: '<main><div class="Box-body"></div></main>' });
+  let badges = text(document, '.dh-warning-list .dh-badge');
+  assert.ok(badges.includes('Not fully scanned'));
+  assert.ok(!badges.includes('Nothing flagged'));
+  const allFour = { [SHA]: { virusTotal: { state: 'complete', stats: { malicious: 0, suspicious: 0, harmless: 60, undetected: 3 } }, metaDefender: { state: 'complete', flagged: 0, total: 20, dataId: 'abc_123' } } };
+  document = await open('/o/r/releases/tag/v1.0', lookup({ scans: twoOfFour, external: allFour, stats: {} }), { html: '<main><div class="Box-body"></div></main>' });
+  badges = text(document, '.dh-warning-list .dh-badge');
+  assert.ok(badges.includes('Nothing flagged'));
+});
+
 test('a release page shows that release\'s scans and the lookup link, only for a real hash', async () => {
   const document = await open('/o/r/releases/tag/v1.0', lookup({ scans, external, virusTotalAvailable: true, metaDefenderAvailable: true }), { html: '<main><div class="Box-body"></div></main>' });
   const block = document.querySelector('.Box-body .dh-panel')!;
