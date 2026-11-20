@@ -5,7 +5,7 @@ description: Implement or diagnose Deckyhub browser extension behavior, build co
 
 # Extension development
 
-Work in `extension/`. Webpack builds `src/background.ts`, `src/contentscript.ts` and `src/popup.ts` (TypeScript, shared shapes in `src/types.ts`) into `background.js`, `contentscript.js` and `popup.js`; it copies `src/content.css`, `src/popup.html`, `src/popup.css` and `manifest.json` into `dist/` and produces `deckyhub-security-chromium.zip`. `npm run build-firefox` does the same into `dist-firefox/` with Firefox's manifest (a background script instead of a service worker, and its add-on ID); keep the code to APIs both browsers have, under the `chrome` namespace. Edit source rather than generated output.
+Work in `extension/`. Webpack builds `src/background.ts`, `src/contentscript.ts` (with `src/content/`) and `src/popup.ts` (TypeScript, shared shapes in `src/types.ts`) into `background.js`, `contentscript.js` and `popup.js`; it copies `src/content.css`, `src/popup.html`, `src/popup.css` and `manifest.json` into `dist/` and produces `deckyhub-security-chromium.zip`. `npm run build-firefox` does the same into `dist-firefox/` with Firefox's manifest (a background script instead of a service worker, and its add-on ID); keep the code to APIs both browsers have, under the `chrome` namespace. Edit source rather than generated output.
 
 For GitHub page changes, account for Turbo/PJAX navigation, asynchronous responses arriving after navigation, repeated DOM mutations, and removal of the panel. Preserve accessible labels, GitHub theme variables, and safe DOM construction: registry-provided strings are untrusted, so use text nodes and validate values used in URLs. Keep manifest permissions and content-script matches limited to what is needed.
 
