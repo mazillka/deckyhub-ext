@@ -9,7 +9,7 @@ A change is done when it holds on every page and in both browsers, not when one 
 
 ## 1. List every place it must reach
 
-- **Three GitHub views.** The repository page, the Releases list and a single release each render their own block (`extension/src/contentscript.ts`: `render`, `releaseBlock`, `badgeList` with `all` for repo-level facts). A badge or warning must be right in each, and `all` decides which views show repo-level facts such as Fork, In Decky store, AI and Rust.
+- **Three GitHub views.** The repository page, the Releases list and a single release each render their own block (`extension/src/content/panel.ts`: `render`, `releaseBlock`; `extension/src/content/badges.ts`: `badgeList` with `all` for repo-level facts). A badge or warning must be right in each, and `all` decides which views show repo-level facts such as Fork, In Decky store, AI and Rust.
 - **Special registry entries.** A store-only entry (`app.store === true`) carries only the In Decky store badge; a repo missing from the registry shows nothing; stale cached data shows the cached notice; an unknown audit code must still render, never throw.
 - **Parity.** The extension says what deckyhub.com and the plugin say, in the same words, never stronger (`badge-parity`). A badge added or reworded here is also added there, and the README and `store/chrome-listing.md` list the badges too.
 - **Registry fields are additive.** The extension reads `stats.json` and `apps.json` as published (`registry-data`); a field it doesn't know must be ignored, a missing one must not crash.

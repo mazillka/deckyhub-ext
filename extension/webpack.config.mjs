@@ -26,7 +26,8 @@ export default (env = {}, argv) => {
   return {
     mode: argv.mode || "development",
     entry: { background: "./src/background.ts", contentscript: "./src/contentscript.ts", popup: "./src/popup.ts" },
-    resolve: { extensions: [".ts", ".js"] },
+    // Imports are written with their .ts extension (Node runs the tests on the sources); TypeScript turns them into .js.
+    resolve: { extensions: [".ts", ".js"], extensionAlias: { ".js": [".ts", ".js"] } },
     module: { rules: [{ test: /\.ts$/, loader: "ts-loader", options: { compilerOptions: { noEmit: false } }, exclude: /node_modules/ }] },
     output: {
       filename: "[name].js",
