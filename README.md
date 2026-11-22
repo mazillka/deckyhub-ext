@@ -11,6 +11,7 @@ Safari isn't supported yet: it needs the extension wrapped in an Xcode app, whic
 - **On the repository page:** a short panel with the plugin's name, links to its DeckyHub page and **Send to device (experimental)**, and safety badges: runs as root, audit warnings, fork, in the Decky store, made with AI, written in Rust, and the latest virus-scan result.
 - **On the Releases page:** a block under each release with the same links and badges for that release, plus its scan reports: ClamAV, YARA, VirusTotal and MetaDefender, and a VirusTotal lookup by file hash. The links open that exact version on DeckyHub.
 - **On a single release page:** the same block as in the list.
+- **On a repository DeckyHub does not list:** when its file list shows a `plugin.json` at the root (so it looks like a Decky plugin), a small panel says DeckyHub has no audit findings or virus scans for it, with a **Suggest it for DeckyHub** link. The link opens the registry's "Add a plugin" form on GitHub with the repository filled in; you read it and submit it yourself.
 - **Collapse:** every panel has a Collapse / Expand button. The extension's toolbar popup has a setting to start them collapsed.
 
 The registry keeps scans for the three newest stable and three newest pre-releases of each plugin. Older releases show "No scan report for this release."
@@ -56,7 +57,7 @@ Try it on a listed plugin, for example [MWGIH/DeckyMultiFrameGen](https://github
 
 ## Privacy
 
-The extension downloads the public registry files from `raw.githubusercontent.com`: the plugin list, audit stats, virus-scan summaries, and VirusTotal and MetaDefender reports. It keeps them in extension storage for 30 minutes and uses the last copy if a refresh fails. It does not send your browsing history anywhere or make a request per repository. GitHub and the data host see normal network request information. Links to VirusTotal, MetaDefender and DeckyHub open only when you click them; the extension never uploads files or runs scans. The only thing it saves is the "collapse by default" setting.
+The extension downloads the public registry files from `raw.githubusercontent.com`: the plugin list, audit stats, virus-scan summaries, and VirusTotal and MetaDefender reports. It keeps them in extension storage for 30 minutes and uses the last copy if a refresh fails. It does not send your browsing history anywhere or make a request per repository. GitHub and the data host see normal network request information. Links to VirusTotal, MetaDefender, DeckyHub and the registry's "Add a plugin" form open only when you click them (the form link carries only the repository's name, and nothing is submitted until you do); the extension never uploads files or runs scans. The only thing it saves is the "collapse by default" setting.
 
 ## What the results mean
 

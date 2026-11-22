@@ -2,6 +2,7 @@ import type { Lookup } from '../types';
 import { badgeList, fieldsFor } from './badges.ts';
 import { SLUG, el, newTabLink } from './dom.ts';
 import { recordFor, scanBlock, type Found } from './scans.ts';
+import { looksLikeDeckyPlugin, suggestionLink } from './suggest.ts';
 
 // The panels on GitHub's pages: the repository page, each card of the Releases list, and a single release.
 
@@ -139,6 +140,23 @@ function repositoryPanel(data: Lookup, startCollapsed: boolean) {
   return panel;
 }
 
+// A repository the registry does not list but that looks like a Decky plugin: no information, and a way to suggest it.
+function suggestionPanel(repo: string, startCollapsed: boolean) {
+  const href = suggestionLink(repo);
+  if (!href) return null;
+  const panel = el('section', '', 'dh-panel');
+  panel.id = ID;
+  panel.setAttribute('aria-label', 'DeckyHub suggestion');
+  const actions = el('div', '', 'dh-actions');
+  actions.append(newTabLink('Suggest it for DeckyHub ↗', href, 'dh-site-link'));
+  panelHead(panel, 'Not in DeckyHub’s list', actions, startCollapsed);
+  panel.append(
+    el('p', 'DeckyHub has no audit findings or virus scans for this repository because it is not in DeckyHub’s list.', 'dh-notice'),
+    el('p', 'It looks like a Decky plugin (a plugin.json at its root). The link opens a form in the DeckyHub registry that you can read and submit yourself; this extension sends nothing.', 'dh-footnote')
+  );
+  return panel;
+}
+
 // A block under each release card of the Releases list.
 function addToReleaseCards(target: Element, data: Lookup, startCollapsed: boolean) {
   const seen = new Set<Element>();
@@ -152,11 +170,17 @@ function addToReleaseCards(target: Element, data: Lookup, startCollapsed: boolea
 }
 
 // Draws the panels for what the registry answered. True when it drew (or looked for) them, false when this page has none.
-export function render(data: Lookup, tag: string, list: boolean, startCollapsed: boolean) {
+export function render(data: Lookup, tag: string, list: boolean, startCollapsed: boolean, repo = '') {
   clearPanels();
-  if (!data?.catalogAvailable || !data.app) return false;
+  if (!data?.catalogAvailable) return false;
   const target = document.querySelector('main') || document.querySelector('#repo-content-pjax-container');
   if (!target) return false;
+  if (!data.app) {
+    // Only the repository page itself, and only when its file list shows a plugin.json.
+    const suggestion = !tag && !list && looksLikeDeckyPlugin(repo) ? suggestionPanel(repo, startCollapsed) : null;
+    if (suggestion) target.prepend(suggestion);
+    return !!suggestion;
+  }
   if (list) addToReleaseCards(target, data, startCollapsed);
   else if (tag) (target.querySelector('.Box-body') || target).append(releaseBlock(data, tag, startCollapsed));
   else target.prepend(repositoryPanel(data, startCollapsed));

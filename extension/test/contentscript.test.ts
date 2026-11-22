@@ -237,3 +237,51 @@ test('a pre-release page explains what a pre-release is, a stable release does n
   document = await open('/o/r/releases/tag/v1.0', lookup({ scans }), { html: '<main><div class="Box-body"></div></main>' });
   assert.doesNotMatch(document.querySelector('.dh-panel')!.textContent!, /unfinished or buggy/);
 });
+
+// A repository the registry does not list but that looks like a Decky plugin: a link to the registry's "Add a plugin" form.
+const files = (repo = 'o/r', ref = 'main') => `<main><a href="/${repo}/blob/${ref}/plugin.json">plugin.json</a></main>`;
+const SUGGEST = 'https://github.com/mazillka/deckyhub-registry/issues/new?template=add_plugin.yml';
+
+test('an unlisted repo with a plugin.json in its file list offers to suggest it, with the form filled in', async () => {
+  const document = await open('/o/r', lookup({ app: null }), { html: files() });
+  assert.equal(document.querySelector('.dh-title')?.textContent, 'Not in DeckyHub’s list');
+  const link = document.querySelector<HTMLAnchorElement>('.dh-site-link');
+  assert.equal(link?.href, `${SUGGEST}&title=Add%20r&repo=https%3A%2F%2Fgithub.com%2Fo%2Fr`);
+  assert.equal(link?.target, '_blank');
+  assert.equal(link?.rel, 'noopener noreferrer');
+  // It says what is missing; it never says the repository is fine.
+  assert.match(document.querySelector('.dh-notice')?.textContent || '', /no audit findings or virus scans/);
+  assert.deepEqual(messages, [{ type: 'deckyhub:lookup', repo: 'o/r' }]);
+});
+
+test('the suggestion is only for the repo page of something with a plugin.json at its root', async () => {
+  assert.equal((await open('/o/r', lookup({ app: null }))).querySelector('.dh-panel'), null);
+  assert.equal((await open('/o/r', lookup({ app: null }), { html: '<main><a href="/o/r/blob/main/src/plugin.json">plugin.json</a></main>' })).querySelector('.dh-panel'), null);
+  assert.equal((await open('/o/r', lookup({ app: null }), { html: files('x/y') })).querySelector('.dh-panel'), null);
+  for (const path of ['/o/r/releases', '/o/r/releases/tag/v1']) assert.equal((await open(path, lookup({ app: null }), { html: files() })).querySelector('.dh-panel'), null, path);
+  assert.equal((await open('/o/r', { catalogAvailable: false }, { html: files() })).querySelector('.dh-panel'), null);
+});
+
+test('a listed repo keeps its own panel, and gets no suggestion', async () => {
+  const document = await open('/o/r', lookup(), { html: files() });
+  assert.equal(document.querySelector('.dh-title')?.textContent, 'My Plugin');
+  assert.equal(document.querySelector('a[href*="issues/new"]'), null);
+});
+
+test('names with dots and other letter cases are matched and encoded', async () => {
+  const document = await open('/my.org/my-plugin.v2', lookup({ app: null }), { html: files('My.Org/My-Plugin.V2') });
+  assert.equal(document.querySelector<HTMLAnchorElement>('.dh-site-link')?.href, `${SUGGEST}&title=Add%20my-plugin.v2&repo=https%3A%2F%2Fgithub.com%2Fmy.org%2Fmy-plugin.v2`);
+  // A dot in the repo name is not a wildcard: /myxorg/... is another repository.
+  assert.equal((await open('/my.org/p', lookup({ app: null }), { html: files('myxorg/p') })).querySelector('.dh-panel'), null);
+});
+
+test('the suggestion appears once GitHub has drawn the file list', async () => {
+  const document = await open('/o/r', lookup({ app: null }));
+  assert.equal(document.querySelector('.dh-panel'), null);
+  const link = document.createElement('a');
+  link.setAttribute('href', '/o/r/blob/main/plugin.json');
+  link.textContent = 'plugin.json';
+  document.querySelector('main')!.append(link);
+  for (let i = 0; i < 40 && !document.querySelector('.dh-panel'); i++) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(document.querySelector('.dh-title')?.textContent, 'Not in DeckyHub’s list');
+});
