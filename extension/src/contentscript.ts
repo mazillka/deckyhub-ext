@@ -7,6 +7,9 @@ import { clearPanels, render } from './content/panel.ts';
 let lastUrl = '';
 let sequence = 0;
 let rendered = false;
+// An unlisted repository page whose file list GitHub has not drawn yet: looked at again as the page fills in, for a while.
+const WAIT_MS = 15000;
+let waiting: { data: Lookup; collapsed: boolean; repo: string; until: number } | null = null;
 
 const NAME = /^[\w.-]+$/;
 
@@ -25,6 +28,7 @@ async function update() {
   if (url === lastUrl && (!rendered || document.querySelector('.dh-panel'))) return;
   lastUrl = url;
   rendered = false;
+  waiting = null;
   const current = ++sequence;
   clearPanels();
   const page = pageOf(location.pathname);
@@ -32,7 +36,10 @@ async function update() {
   try {
     const startCollapsed = !!(await chrome.storage.local.get('deckyhub_collapse')).deckyhub_collapse;
     const data: Lookup = await chrome.runtime.sendMessage({ type: 'deckyhub:lookup', repo: page.repo });
-    if (current === sequence && location.href === url) rendered = render(data, page.tag, page.list, startCollapsed);
+    if (current === sequence && location.href === url) {
+      rendered = render(data, page.tag, page.list, startCollapsed, page.repo);
+      if (!rendered && data?.catalogAvailable && !data.app && !page.tag && !page.list) waiting = { data, collapsed: startCollapsed, repo: page.repo, until: Date.now() + WAIT_MS };
+    }
   } catch { /* Extension reloaded or unavailable. */ }
 }
 
@@ -47,6 +54,10 @@ new MutationObserver(() => {
     watching = false;
     const panelLost = rendered && !document.querySelector('.dh-panel') && document.querySelector('main');
     if (location.href !== lastUrl || panelLost) update();
+    else if (waiting && !rendered) {
+      if (Date.now() > waiting.until) waiting = null;
+      else rendered = render(waiting.data, '', false, waiting.collapsed, waiting.repo);
+    }
   });
 }).observe(document.documentElement, { childList: true, subtree: true });
 update();
