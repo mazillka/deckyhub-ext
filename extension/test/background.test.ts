@@ -75,6 +75,28 @@ test('answers with the plugin, its stats and scans, whatever the case of the rep
   assert.equal(answer.stale, false);
 });
 
+test('a plugin whose name another plugin shares gets its owner in its title', async () => {
+  const original = files['main/registry/apps.json'];
+  files['main/registry/apps.json'] = { apps: [{ id: 'a', name: 'Same', repo: 'Alice/Same' }, { id: 'b', name: 'same', repo: 'bob/same' }, { id: 'c', name: 'Solo', repo: 'carol/solo' }] };
+  try {
+    assert.equal((await lookup('alice/same')).app.name, 'Same by alice');
+    assert.equal((await lookup('bob/same')).app.name, 'same by bob');
+    assert.equal((await lookup('carol/solo')).app.name, 'Solo');
+  } finally {
+    files['main/registry/apps.json'] = original;
+  }
+});
+
+test('keeps the fresh data when the browser storage is full', async () => {
+  (globalThis as any).chrome.storage.local.set = async () => {
+    throw new Error('QUOTA_BYTES quota exceeded');
+  };
+  const answer = await lookup('owner/one');
+  assert.equal(answer.catalogAvailable, true);
+  assert.equal(answer.app.id, 'one');
+  assert.deepEqual(answer.unavailable, []);
+});
+
 test('lists the other registry plugins by the same owner, never the plugin itself or another owner', async () => {
   const answer = await lookup('OWNER/one');
   assert.deepEqual(answer.more, [{ id: 'two', name: 'Two' }]);

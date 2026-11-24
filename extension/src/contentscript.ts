@@ -31,9 +31,10 @@ async function update() {
   waiting = null;
   const current = ++sequence;
   clearPanels();
-  const page = pageOf(location.pathname);
-  if (!page) return;
   try {
+    // Inside the try: decodeURIComponent throws on a tag with a broken % escape.
+    const page = pageOf(location.pathname);
+    if (!page) return;
     const startCollapsed = !!(await chrome.storage.local.get('deckyhub_collapse')).deckyhub_collapse;
     const data: Lookup = await chrome.runtime.sendMessage({ type: 'deckyhub:lookup', repo: page.repo });
     if (current === sequence && location.href === url) {

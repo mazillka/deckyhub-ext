@@ -14,7 +14,7 @@ interface Source { data: any; stale: boolean; error?: string }
 
 const pending = new Map<SourceName, Promise<Source>>();
 // Parsed copies kept while this service worker lives: chrome.storage.local.get() would otherwise
-// deserialize all five files (about 1.4 MB of JSON) again on every lookup.
+// deserialize all five files (about 4.7 MB of JSON, and growing with the registry) again on every lookup.
 const memory = new Map<SourceName, { time: number; data: any }>();
 
 async function load(name: SourceName): Promise<Source> {
@@ -34,7 +34,8 @@ async function load(name: SourceName): Promise<Source> {
         if (name === 'catalog' ? !Array.isArray(data.apps) : (name === 'virustotal' || name === 'metadefender') ? !data.reports || typeof data.reports !== 'object' || Array.isArray(data.reports) : !data.plugins || typeof data.plugins !== 'object') throw new Error('Invalid registry data');
         const entry = { time: Date.now(), data };
         memory.set(name, entry);
-        await chrome.storage.local.set({ [key]: entry });
+        // A full storage (Chrome allows 10 MB, older versions 5 MB) must not throw away what was just downloaded.
+        await chrome.storage.local.set({ [key]: entry }).catch(() => {});
         return { data, stale: false };
       } catch (error) {
         return { data: cached?.data || null, stale: !!cached, error: String(error) };
@@ -50,8 +51,12 @@ chrome.runtime.onMessage.addListener((message: { type?: string; repo?: string },
     const repo = (message.repo as string).toLowerCase();
     const plugin: (Scans & { stable?: { sha256?: string } }) | undefined = scans.data?.plugins?.[repo];
     const owner = repo.split('/')[0];
+    const apps: App[] = catalog.data?.apps ?? [];
+    const found = apps.find(app => typeof app.repo === 'string' && app.repo.toLowerCase() === repo) || null;
+    // Two plugins can share a name (a fork and its original): like DeckyHub and its website, the title says whose it is.
+    const shared = found && typeof found.name === 'string' && apps.filter(app => typeof app.name === 'string' && app.name.toLowerCase() === found.name.toLowerCase()).length > 1;
     sendResponse({
-      app: catalog.data?.apps.find((app: App) => typeof app.repo === 'string' && app.repo.toLowerCase() === repo) || null,
+      app: shared ? { ...found, name: `${found.name} by ${owner}` } : found,
       catalogAvailable: !!catalog.data,
       more: (catalog.data?.apps as App[] | undefined ?? []).filter(app => typeof app.repo === 'string' && app.repo.toLowerCase() !== repo && app.repo.toLowerCase().split('/')[0] === owner && typeof app.id === 'string' && typeof app.name === 'string').slice(0, 8).map(({ id, name }) => ({ id, name })),
       stats: stats.data?.plugins?.[repo] || null,
