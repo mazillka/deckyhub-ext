@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
+import { readFileSync } from 'node:fs';
 
 type Listener = (message: unknown, sender: unknown, send: (response: any) => void) => boolean | undefined;
 
@@ -162,4 +163,51 @@ test('data of the wrong shape is refused, not cached', async () => {
   } finally {
     files['main/registry/apps.json'] = { apps: [{ id: 'one', name: 'One', repo: 'Owner/One' }] };
   }
+});
+
+test('malformed catalog entries and scan histories do not hide other sources', async () => {
+  const catalog = files['main/registry/apps.json'];
+  const scans = files['virus-scans/plugins.json'];
+  files['main/registry/apps.json'] = { apps: [null, 5, { id: 'one', name: 'One', repo: 'Owner/One' }] };
+  files['virus-scans/plugins.json'] = { plugins: { 'owner/one': { releases: {} } } };
+  try {
+    const answer = await lookup('owner/one');
+    assert.equal(answer.app.id, 'one');
+    assert.equal(answer.stats.root, true);
+    assert.equal(answer.scans, null);
+    assert.deepEqual(answer.unavailable, ['scan data']);
+  } finally {
+    files['main/registry/apps.json'] = catalog;
+    files['virus-scans/plugins.json'] = scans;
+  }
+});
+
+test('a timed out source falls back to its stale cache without hiding other data', async () => {
+  await lookup('owner/one');
+  now += 31 * 60 * 1000;
+  const originalFetch = globalThis.fetch;
+  (globalThis as any).fetch = async (url: string, options: RequestInit) => {
+    if (url.includes('virus-scans/')) {
+      assert.ok(options.signal);
+      throw new DOMException('Timed out', 'TimeoutError');
+    }
+    return originalFetch(url, options);
+  };
+  const answer = await lookup('owner/one');
+  assert.equal(answer.app.id, 'one');
+  assert.equal(answer.scans.stable.tag, 'v1');
+  assert.equal(answer.stale, true);
+});
+
+test('reads an entry from the checked-out registry', { skip: !process.env.DECKYHUB_REGISTRY }, async () => {
+  const original = files['main/registry/apps.json'];
+  const catalog = JSON.parse(readFileSync(process.env.DECKYHUB_REGISTRY!, 'utf8'));
+  assert.ok(Array.isArray(catalog.apps) && catalog.apps.length);
+  files['main/registry/apps.json'] = catalog;
+  try {
+    const entry = catalog.apps[0];
+    const answer = await lookup(entry.repo);
+    assert.equal(answer.catalogAvailable, true);
+    assert.equal(answer.app?.id, entry.id);
+  } finally { files['main/registry/apps.json'] = original; }
 });
