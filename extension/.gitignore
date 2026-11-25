@@ -3,6 +3,7 @@
 /node_modules
 /test-results
 /dist
+/dist-*
 /.tmp-globalize-webpack
 /.vs
 /.vscode
