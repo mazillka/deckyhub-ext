@@ -10,6 +10,7 @@ const extension = path.resolve('dist');
 let context;
 try {
   context = await chromium.launchPersistentContext(profile, {
+    channel: 'chromium',
     headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`]
   });
