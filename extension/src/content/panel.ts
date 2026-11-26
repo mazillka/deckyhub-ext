@@ -48,6 +48,8 @@ function siteLinks(data: Lookup, tag?: string) {
   if (data.app?.store !== true) {
     actions.append(newTabLink('Send to device (experimental) ↗', `${installPage}${tag ? `?tag=${encodeURIComponent(tag)}` : ''}#remote-install`, 'dh-install-link'));
   }
+  // A search, not a link to a review: what it finds may be unrelated or nothing.
+  actions.append(newTabLink('Search YouTube ↗', `https://www.youtube.com/results?search_query=${encodeURIComponent(`${data.app?.name} Decky`)}`, 'dh-youtube-link'));
   return actions;
 }
 

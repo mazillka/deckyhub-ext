@@ -76,6 +76,13 @@ test('links to DeckyHub use the plugin id, encoded', async () => {
   assert.equal(link?.rel, 'noopener noreferrer');
 });
 
+test('the YouTube link is a search for the encoded plugin name, also for a store-only plugin', async () => {
+  const document = await open('/o/r', lookup({ app: { ...app, name: 'A & B?', store: true } }));
+  const link = document.querySelector<HTMLAnchorElement>('.dh-youtube-link');
+  assert.equal(link?.href, 'https://www.youtube.com/results?search_query=A%20%26%20B%3F%20Decky');
+  assert.equal(link?.textContent, 'Search YouTube ↗');
+});
+
 test('an id that could break out of a URL gets no links at all', async () => {
   for (const id of ['../x', 'a b', 'A', '-x', 'x?y=1', undefined]) {
     const document = await open('/o/r', lookup({ app: { ...app, id } }));
