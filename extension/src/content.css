@@ -22,7 +22,7 @@
 .dh-actions { flex-wrap: wrap; gap: 8px; }
 .dh-panel a { color: var(--fgColor-accent, #0969da); }
 .dh-panel a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-.dh-panel .dh-site-link, .dh-panel .dh-install-link {
+.dh-panel .dh-site-link, .dh-panel .dh-install-link, .dh-panel .dh-youtube-link {
   padding: 8px 12px;
   border: 1px solid var(--borderColor-default, #d0d7de);
   border-radius: 8px;
