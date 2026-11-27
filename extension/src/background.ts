@@ -4,10 +4,12 @@ import type { External, Lookup, Scans, ScanRecord, Stats, App } from './types';
 const SOURCES = {
   catalog: 'main/registry/apps.json',
   stats: 'release-index/stats.json',
-  scans: 'virus-scans/plugins.json',
+  scans: 'virus-scans/plugins-lite.json',
   virustotal: 'virustotal-reports/reports.json',
   metadefender: 'metadefender-reports/reports.json'
 };
+// Read when the file above isn't there: a registry that doesn't publish the smaller scan file yet, or was rolled back.
+const FALLBACKS: Partial<Record<keyof typeof SOURCES, string>> = { scans: 'virus-scans/plugins.json' };
 const TTL = 30 * 60 * 1000;
 const FETCH_TIMEOUT = 15_000;
 const record = (value: unknown): value is Record<string, any> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -31,7 +33,10 @@ async function load(name: SourceName): Promise<Source> {
   if (!pending.has(name)) {
     pending.set(name, (async () => {
       try {
-        const response = await fetch(BASE + SOURCES[name], { cache: 'no-cache', signal: AbortSignal.timeout(FETCH_TIMEOUT) });
+        const get = (path: string) => fetch(BASE + path, { cache: 'no-cache', signal: AbortSignal.timeout(FETCH_TIMEOUT) });
+        let response = await get(SOURCES[name]);
+        const fallback = FALLBACKS[name];
+        if (response.status === 404 && fallback) response = await get(fallback);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         if (!record(data) || (name === 'catalog' ? !Array.isArray(data.apps) : (name === 'virustotal' || name === 'metadefender') ? !record(data.reports) : !record(data.plugins))) throw new Error('Invalid registry data');
