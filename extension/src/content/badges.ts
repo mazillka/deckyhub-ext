@@ -4,15 +4,16 @@ import { externalCounts, type Found } from './scans.ts';
 
 // The same safety badges deckyhub.com shows.
 
-const warnings: Record<string, [string, string]> = {
-  blocked: ['Blocked by audit', 'The automated audit classified this release as blocked, for example because of suspected malware or a broken archive.'],
-  'private-data': ['Reads private data', 'The audit found code that may access private data, such as Steam login data, SSH keys, or environment secrets.'],
-  persistence: ['Changes system startup', 'The audit found code that may change startup behavior, such as shell profiles, kernel modules, or udev rules.'],
-  'not-in-source': ['Very high risk: Download includes code that is not in GitHub', 'The release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.'],
-  obfuscated: ['Hidden code', 'The audit found encoded, packed, or otherwise obfuscated code.'],
-  'no-tls-check': ['Skips HTTPS checks', 'The audit found code that disables HTTPS certificate verification.'],
-  'runs-downloads': ['Runs downloaded scripts', 'The audit found code that downloads a script and runs it.'],
-  vulnerable: ['Known vulnerabilities', 'The audit found bundled software with published security vulnerabilities.']
+// A copy of the registry's registry/warnings.json (test/registry-contract.test.ts compares them): change texts there first.
+export const warnings: Record<string, [string, string]> = {
+  blocked: ['Blocked by audit', 'The audit blocked this release, for example for suspected malware or a broken archive.'],
+  'private-data': ['Reads private data', 'The audit found code that may access Steam login data, SSH keys or secrets from the environment.'],
+  persistence: ['Changes system startup', 'The audit found code that may change shell profiles, preloaded libraries, kernel modules or device rules. Such changes can keep working outside Decky.'],
+  'not-in-source': ['Very high risk: Download includes code that is not in GitHub', 'The downloaded release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.'],
+  obfuscated: ['Hidden code', "The audit found encoded or packed code that's hard to read."],
+  'no-tls-check': ['Skips HTTPS checks', 'The audit found code that turns off certificate checks, so what it downloads could be tampered with.'],
+  'runs-downloads': ['Runs downloaded scripts', 'The audit found code that downloads a script and runs it straight away.'],
+  vulnerable: ['Known vulnerabilities', 'The audit found bundled libraries with published security flaws.']
 };
 const SCAN_RESULT_WORDS: Record<string, string> = { clean: 'no threats found', infected: 'threat found', incomplete: 'only partly scanned', error: "couldn't be scanned" };
 const SCAN_BADGES = { clean: ['Nothing flagged', 'good'], infected: ['Threat found', 'danger'], partial: ['Not fully scanned', 'warning'] } as const;

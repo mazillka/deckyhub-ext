@@ -14,7 +14,7 @@ const files: Record<string, unknown> = {
     ]
   },
   'release-index/stats.json': { plugins: { 'owner/one': { root: true, warnings: ['obfuscated'] } } },
-  'virus-scans/plugins.json': {
+  'virus-scans/plugins-lite.json': {
     plugins: { 'owner/one': { stable: { tag: 'v1', sha256: SHA.toUpperCase() }, releases: [{ tag: 'v0', sha256: 'abc123' }] } }
   },
   'virustotal-reports/reports.json': { reports: { [SHA]: { state: 'complete' } } },
@@ -167,9 +167,9 @@ test('data of the wrong shape is refused, not cached', async () => {
 
 test('malformed catalog entries and scan histories do not hide other sources', async () => {
   const catalog = files['main/registry/apps.json'];
-  const scans = files['virus-scans/plugins.json'];
+  const scans = files['virus-scans/plugins-lite.json'];
   files['main/registry/apps.json'] = { apps: [null, 5, { id: 'one', name: 'One', repo: 'Owner/One' }] };
-  files['virus-scans/plugins.json'] = { plugins: { 'owner/one': { releases: {} } } };
+  files['virus-scans/plugins-lite.json'] = { plugins: { 'owner/one': { releases: {} } } };
   try {
     const answer = await lookup('owner/one');
     assert.equal(answer.app.id, 'one');
@@ -178,7 +178,7 @@ test('malformed catalog entries and scan histories do not hide other sources', a
     assert.deepEqual(answer.unavailable, ['scan data']);
   } finally {
     files['main/registry/apps.json'] = catalog;
-    files['virus-scans/plugins.json'] = scans;
+    files['virus-scans/plugins-lite.json'] = scans;
   }
 });
 
@@ -197,6 +197,30 @@ test('a timed out source falls back to its stale cache without hiding other data
   assert.equal(answer.app.id, 'one');
   assert.equal(answer.scans.stable.tag, 'v1');
   assert.equal(answer.stale, true);
+});
+
+test('reads the full scan file only when the smaller one is not published', async () => {
+  const lite = files['virus-scans/plugins-lite.json'];
+  delete files['virus-scans/plugins-lite.json'];
+  files['virus-scans/plugins.json'] = lite;
+  const originalFetch = globalThis.fetch;
+  let status = 404;
+  (globalThis as any).fetch = async (url: string, options: RequestInit) =>
+    url.endsWith('plugins-lite.json') ? { ok: false, status, json: async () => ({}) } : originalFetch(url, options);
+  try {
+    assert.equal((await lookup('owner/one')).scans.stable.tag, 'v1');
+    assert.ok(requested.includes('virus-scans/plugins.json'));
+    // Any other failure keeps the cached copy instead of downloading the big file.
+    now += 31 * 60 * 1000;
+    status = 503;
+    requested.length = 0;
+    const answer = await lookup('owner/one');
+    assert.equal(answer.stale, true);
+    assert.ok(!requested.includes('virus-scans/plugins.json'));
+  } finally {
+    files['virus-scans/plugins-lite.json'] = lite;
+    delete files['virus-scans/plugins.json'];
+  }
 });
 
 test('reads an entry from the checked-out registry', { skip: !process.env.DECKYHUB_REGISTRY }, async () => {
