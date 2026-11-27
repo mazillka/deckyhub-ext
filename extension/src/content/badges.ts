@@ -1,5 +1,5 @@
 import type { Lookup, ScanRecord, Stats, Verdict } from '../types';
-import { el } from './dom.ts';
+import { el, newTabLink } from './dom.ts';
 import { externalCounts, type Found } from './scans.ts';
 
 // The same safety badges deckyhub.com shows.
@@ -20,7 +20,7 @@ const SOURCE_RULES = ['source_path_missing', 'source_file_differs'];
 const STORE_NOTE = 'The Decky store lists a plugin with this name. The store names no repository, so check that it is this one.';
 
 type AuditField = 'warnings' | 'prereleaseWarnings';
-type AddBadge = (text: string, kind: string, description: string) => void;
+type AddBadge = (text: string, kind: string, ...description: (string | Node)[]) => void;
 export type BadgeFields = [AuditField, string][];
 
 // Which audit warnings belong to a release: the ones kept for the channel its scan names.
@@ -31,15 +31,22 @@ export function fieldsFor(channel?: Found['channel']): BadgeFields {
 
 const includes = (codes: string[] | undefined, code: string) => Array.isArray(codes) && codes.includes(code);
 
-// Repository facts: root, fork, Decky store, Rust, AI. Release pages show only root.
-function repositoryBadges(add: AddBadge, stats: Stats, all: boolean) {
+// What marked a plugin as AI-assisted, with each "(address)" on GitHub as a short link. Anything else stays text.
+const aiEvidence = (entries: string[]) => entries.join(', ')
+  .split(/\((https:\/\/github\.com\/[^\s()]+)\)/)
+  .flatMap((part, i) => (i % 2 ? ['(', newTabLink(part.includes('/commit/') ? 'commit' : 'link', part), ')'] : [part]));
+
+function rootBadge(add: AddBadge, stats: Stats) {
   if (stats.root === true) add('Runs as root', 'warning', 'The plugin backend runs with root privileges and can read or change system files and user data. Some plugins need this access.');
-  if (!all) return;
+}
+
+// Background facts about the repository: fork, Decky store, Rust, AI. Release pages show none.
+function backgroundBadges(add: AddBadge, stats: Stats) {
   if (typeof stats.fork === 'string') add('Fork', 'unknown', `A fork of ${stats.fork}: its code started as a copy of that project.`);
   if (stats.store) add('In Decky store', 'unknown', STORE_NOTE);
   if (stats.rust === true) add('Rust', 'unknown', 'Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.');
   if (Array.isArray(stats.ai) && stats.ai.length) {
-    add('AI', 'unknown', `Its repository has instructions for AI coding assistants, or says it is made with AI (${stats.ai.join(', ')}). That says nothing about its quality or safety.`);
+    add('AI', 'unknown', 'Its repository has instructions for AI coding assistants, or says it is made with AI (', ...aiEvidence(stats.ai), '). That says nothing about its quality or safety.');
   }
 }
 
@@ -80,21 +87,27 @@ function scanBadge(add: AddBadge, data: Lookup, { record, pre }: Found) {
   const counts = externalCounts(data, record);
   const results = [record.clamav.result, record.yara?.result].filter((value): value is string => !!value)
     .concat(counts.map(([, flagged]) => (flagged ? 'infected' : 'clean')));
-  const [label, kind] = SCAN_BADGES[scanVerdict(results)];
+  const verdict = scanVerdict(results);
+  const [name, kind] = SCAN_BADGES[verdict];
+  // The count the app shows: how many of the four scanners have reported finding nothing.
+  const passed = results.filter(result => result === 'clean').length;
+  const label = verdict === 'partial' ? `${name} · ${passed}/4` : name;
   const verdicts = ([['ClamAV', record.clamav], ['YARA', record.yara]] as [string, Verdict | undefined][])
     .filter((pair): pair is [string, Verdict] => !!pair[1]);
   const detail = verdicts
     .map(([name, verdict]) => `${name}: ${(verdict.result && SCAN_RESULT_WORDS[verdict.result]) || verdict.result}${foundNote(verdict)}`)
     .concat(counts.map(([name, flagged, total]) => `${name}: ${flagged} of ${total} engines flagged it`)).join('; ');
-  add((pre ? 'Pre-release: ' : '') + label, kind, `Virus scan of ${record.file || 'the ZIP'} (${record.tag}): ${detail}. A clean scan isn't proof of safety.`);
+  const reported = verdict === 'partial' ? `. ${passed} of 4 scanners have reported finding nothing` : '';
+  const caveat = kind === 'danger' ? '' : " A clean scan isn't proof of safety.";
+  add((pre ? 'Pre-release: ' : '') + label, kind, `Virus scan of ${record.file || 'the ZIP'} (${record.tag}): ${detail}${reported}.${caveat}`);
 }
 
 // all: repo-level facts too (fork, store, AI); fields: which audit warnings; scans: the releases to describe.
 export function badgeList(data: Lookup, { all = false, fields = [], scans = [] }: { all?: boolean; fields?: BadgeFields; scans?: Found[] }) {
   const items = el('ul', '', 'dh-warning-list');
-  const add: AddBadge = (text, kind, description) => {
+  const add: AddBadge = (text, kind, ...description) => {
     const item = el('li');
-    item.append(el('span', text, `dh-badge dh-${kind}`), document.createTextNode(` ${description}`));
+    item.append(el('span', text, `dh-badge dh-${kind}`), ' ', ...description);
     items.append(item);
   };
   const stats: Stats = data.stats || {};
@@ -103,13 +116,13 @@ export function badgeList(data: Lookup, { all = false, fields = [], scans = [] }
     if (all && stats.store) add('In Decky store', 'unknown', STORE_NOTE);
     return items.childNodes.length ? items : null;
   }
-  repositoryBadges(add, stats, all);
+  // Listed as deckyhub.com lists them: scan results, audit warnings, root, then the background facts.
+  for (const found of scans) scanBadge(add, data, found);
   auditBadges(add, stats, fields);
+  for (const found of scans) notInSourceBadge(add, data, found.record, stats);
+  rootBadge(add, stats);
   // What a pre-release is, for the release it describes: the repo page lists the latest of both channels.
   if (!all && scans.some(({ pre }) => pre)) add('Pre-release', 'warning', 'This is a pre-release, so it may be unfinished or buggy. DeckyHub installs it only if you choose its Pre-release channel.');
-  for (const found of scans) {
-    notInSourceBadge(add, data, found.record, stats);
-    scanBadge(add, data, found);
-  }
+  if (all) backgroundBadges(add, stats);
   return items.childNodes.length ? items : null;
 }
