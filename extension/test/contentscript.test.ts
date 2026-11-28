@@ -155,9 +155,9 @@ test('the clean-scan caveat is left out under a found threat', async () => {
 
 test('findings come before root and the background facts', async () => {
   const found = { stable: { tag: 'v1.0', file: 'p.zip', sha256: SHA, clamav: { result: 'infected' } }, releases: [] };
-  const stats = { root: true, rust: true, warnings: ['obfuscated'] };
+  const stats = { root: true, rust: true, warnings: ['obfuscated'], created: new Date().toISOString() };
   const document = await open('/o/r', lookup({ scans: found, stats }));
-  assert.deepEqual(text(document, '.dh-warning-list .dh-badge'), ['Threat found', 'Hidden code', 'Runs as root', 'Rust']);
+  assert.deepEqual(text(document, '.dh-warning-list .dh-badge'), ['Threat found', 'Hidden code', 'Runs as root', 'New project', 'Rust']);
 });
 
 test('the AI note links a GitHub commit instead of printing its address', async () => {
