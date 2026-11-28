@@ -8,9 +8,9 @@ description: Keep the extension's safety badges, warning texts and scan wording 
 The extension, the plugin pages on deckyhub.com (`deckyhub-site/devtools/plugin_badges.py` and `scan_format.py`: `badges_of`, `SCAN_LABELS`, `SCAN_RESULTS`) and the app show the same facts in the same words. When one changes, check the others.
 
 - Audit warning IDs, labels, explanations and tones come from the registry's `registry/warnings.json`: change them there first, then in the `warnings` table in `extension/src/content/badges.ts`. `extension/test/registry-contract.test.ts` compares them and runs the registry's shared cases (`DECKYHUB_REGISTRY`). An unknown code must still render (generic text), never throw.
-- Order: scan results, audit warnings, runs as root, then the background facts (fork, store, Rust, AI).
+- Order: scan results, audit warnings, runs as root, then the background facts (new project, fork, store, Rust, AI).
 - Scan wording: Nothing flagged / Threat found / Not fully scanned · n/4 (scanners that reported finding nothing); "Pre-release:" prefix; every scan badge but Threat found ends "A clean scan isn't proof of safety". Never call a missing report clean.
-- Badges: Runs as root, Fork, In Decky store, AI, Rust, audit warnings, scan result. `blocked` and `not-in-source` are the danger-level warnings.
+- Badges: Runs as root, New project, Fork, In Decky store, AI, Rust, audit warnings, scan result. `blocked` and `not-in-source` are the danger-level warnings.
 - The extension adds nothing the site doesn't say, and nothing stronger.
 
 Registry data it reads is described in [registry-data](../registry-data/SKILL.md). Wording changes go through the user, since they speak for the whole project.

@@ -3,7 +3,7 @@ export interface ScanRecord { tag: string; file?: string; sha256?: string; clama
 export interface Scans { stable?: ScanRecord; prerelease?: ScanRecord; releases?: ScanRecord[] }
 export interface VirusTotalReport { state?: string; scannedAt?: string | number; stats?: Record<string, number> }
 export interface MetaDefenderReport { state?: string; scannedAt?: string; flagged?: number; total?: number; dataId?: string }
-export interface Stats { root?: boolean; fork?: string; store?: unknown; ai?: string[]; rust?: boolean; warnings?: string[]; prereleaseWarnings?: string[] }
+export interface Stats { root?: boolean; fork?: string; store?: unknown; ai?: string[]; rust?: boolean; created?: string; warnings?: string[]; prereleaseWarnings?: string[] }
 export interface App { id?: string; name: string; repo?: string; store?: boolean }
 export interface External { virusTotal: VirusTotalReport | null; metaDefender: MetaDefenderReport | null }
 // What background.ts answers a "deckyhub:lookup" message with.

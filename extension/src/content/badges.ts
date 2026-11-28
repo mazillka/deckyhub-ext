@@ -41,8 +41,12 @@ function rootBadge(add: AddBadge, stats: Stats) {
   if (stats.root === true) add('Runs as root', 'warning', 'The plugin backend runs with root privileges and can read or change system files and user data. Some plugins need this access.');
 }
 
-// Background facts about the repository: fork, Decky store, Rust, AI. Release pages show none.
+// The New project badge, as the app and the site decide it: a repository under 30 days old.
+const isNewProject = (created: unknown) => typeof created === 'string' && Date.now() - Date.parse(created) < 30 * 24 * 60 * 60 * 1000;
+
+// Background facts about the repository: new project, fork, Decky store, Rust, AI. Release pages show none.
 function backgroundBadges(add: AddBadge, stats: Stats) {
+  if (isNewProject(stats.created)) add('New project', 'unknown', "This plugin's GitHub repository was created less than 30 days ago. That says nothing about its quality or safety.");
   if (typeof stats.fork === 'string') add('Fork', 'unknown', `A fork of ${stats.fork}: its code started as a copy of that project.`);
   if (stats.store) add('In Decky store', 'unknown', STORE_NOTE);
   if (stats.rust === true) add('Rust', 'unknown', 'Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.');
