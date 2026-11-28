@@ -76,6 +76,13 @@ test('links to DeckyHub use the plugin id, encoded', async () => {
   assert.equal(link?.rel, 'noopener noreferrer');
 });
 
+test('the YouTube link is a search for the encoded plugin name, also for a store-only plugin', async () => {
+  const document = await open('/o/r', lookup({ app: { ...app, name: 'A & B?', store: true } }));
+  const link = document.querySelector<HTMLAnchorElement>('.dh-youtube-link');
+  assert.equal(link?.href, 'https://www.youtube.com/results?search_query=A%20%26%20B%3F%20Decky');
+  assert.equal(link?.textContent, 'Search YouTube ↗');
+});
+
 test('an id that could break out of a URL gets no links at all', async () => {
   for (const id of ['../x', 'a b', 'A', '-x', 'x?y=1', undefined]) {
     const document = await open('/o/r', lookup({ app: { ...app, id } }));
@@ -110,7 +117,7 @@ test('the repo page shows repo-level badges and known audit warnings, pre-releas
   const stats = { root: true, fork: 'up/stream', store: { downloads: 1 }, ai: ['CLAUDE.md'], warnings: ['obfuscated', 'blocked'], prereleaseWarnings: ['obfuscated', 'vulnerable', 'brand-new'] };
   const document = await open('/o/r', lookup({ stats }));
   const badges = text(document, '.dh-warning-list .dh-badge');
-  assert.deepEqual(badges, ['Runs as root', 'Fork', 'In Decky store', 'AI', 'Hidden code', 'Blocked by audit', 'Pre-release: Known vulnerabilities', 'Pre-release: brand-new']);
+  assert.deepEqual(badges, ['Hidden code', 'Blocked by audit', 'Pre-release: Known vulnerabilities', 'Pre-release: brand-new', 'Runs as root', 'Fork', 'In Decky store', 'AI']);
   assert.ok(document.querySelector('.dh-badge.dh-danger')?.textContent === 'Blocked by audit');
   assert.ok(document.querySelector('a[href="https://decky-extended-plugins.beallio.com/audit"]'));
 });
@@ -138,11 +145,34 @@ test('a source mismatch is a very-high-risk badge naming the files, unless the a
   assert.equal(text(document, '.dh-warning-list .dh-badge').filter(badge => badge!.includes('Very high risk')).length, 1);
 });
 
+test('the clean-scan caveat is left out under a found threat', async () => {
+  for (const [result, said] of [['clean', true], ['infected', false]] as const) {
+    const found = { stable: { tag: 'v1.0', file: 'p.zip', sha256: SHA, clamav: { result } }, releases: [] };
+    const document = await open('/o/r', lookup({ scans: found, stats: {} }));
+    assert.equal(document.querySelector('.dh-warning-list')!.textContent!.includes("A clean scan isn't proof of safety."), said, result);
+  }
+});
+
+test('findings come before root and the background facts', async () => {
+  const found = { stable: { tag: 'v1.0', file: 'p.zip', sha256: SHA, clamav: { result: 'infected' } }, releases: [] };
+  const stats = { root: true, rust: true, warnings: ['obfuscated'] };
+  const document = await open('/o/r', lookup({ scans: found, stats }));
+  assert.deepEqual(text(document, '.dh-warning-list .dh-badge'), ['Threat found', 'Hidden code', 'Runs as root', 'Rust']);
+});
+
+test('the AI note links a GitHub commit instead of printing its address', async () => {
+  const ai = ['Commit author: Claude (https://github.com/a/b/commit/abc)', 'README: "<AI> (https://evil.example)"'];
+  const document = await open('/o/r', lookup({ stats: { ai } }));
+  const list = document.querySelector('.dh-warning-list')!;
+  assert.match(list.textContent!, /Claude \(commit\), README: "<AI> \(https:\/\/evil\.example\)"\)\. That says/);
+  assert.deepEqual([...list.querySelectorAll('a')].map(a => [a.href, a.rel]), [['https://github.com/a/b/commit/abc', 'noopener noreferrer']]);
+});
+
 test('two clean scans out of four are Not fully scanned, and all four clean are Nothing flagged', async () => {
   const twoOfFour = { stable: { tag: 'v1.0', file: 'p.zip', sha256: SHA, clamav: { result: 'clean' }, yara: { result: 'clean' } }, releases: [] };
   let document = await open('/o/r/releases/tag/v1.0', lookup({ scans: twoOfFour, stats: {} }), { html: '<main><div class="Box-body"></div></main>' });
   let badges = text(document, '.dh-warning-list .dh-badge');
-  assert.ok(badges.includes('Not fully scanned'));
+  assert.ok(badges.includes('Not fully scanned · 2/4'));
   assert.ok(!badges.includes('Nothing flagged'));
   const allFour = { [SHA]: { virusTotal: { state: 'complete', stats: { malicious: 0, suspicious: 0, harmless: 60, undetected: 3 } }, metaDefender: { state: 'complete', flagged: 0, total: 20, dataId: 'abc_123' } } };
   document = await open('/o/r/releases/tag/v1.0', lookup({ scans: twoOfFour, external: allFour, stats: {} }), { html: '<main><div class="Box-body"></div></main>' });

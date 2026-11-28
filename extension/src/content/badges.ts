@@ -1,18 +1,19 @@
 import type { Lookup, ScanRecord, Stats, Verdict } from '../types';
-import { el } from './dom.ts';
+import { el, newTabLink } from './dom.ts';
 import { externalCounts, type Found } from './scans.ts';
 
 // The same safety badges deckyhub.com shows.
 
-const warnings: Record<string, [string, string]> = {
-  blocked: ['Blocked by audit', 'The automated audit classified this release as blocked, for example because of suspected malware or a broken archive.'],
-  'private-data': ['Reads private data', 'The audit found code that may access private data, such as Steam login data, SSH keys, or environment secrets.'],
-  persistence: ['Changes system startup', 'The audit found code that may change startup behavior, such as shell profiles, kernel modules, or udev rules.'],
-  'not-in-source': ['Very high risk: Download includes code that is not in GitHub', 'The release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.'],
-  obfuscated: ['Hidden code', 'The audit found encoded, packed, or otherwise obfuscated code.'],
-  'no-tls-check': ['Skips HTTPS checks', 'The audit found code that disables HTTPS certificate verification.'],
-  'runs-downloads': ['Runs downloaded scripts', 'The audit found code that downloads a script and runs it.'],
-  vulnerable: ['Known vulnerabilities', 'The audit found bundled software with published security vulnerabilities.']
+// A copy of the registry's registry/warnings.json (test/registry-contract.test.ts compares them): change texts there first.
+export const warnings: Record<string, [string, string]> = {
+  blocked: ['Blocked by audit', 'The audit blocked this release, for example for suspected malware or a broken archive.'],
+  'private-data': ['Reads private data', 'The audit found code that may access Steam login data, SSH keys or secrets from the environment.'],
+  persistence: ['Changes system startup', 'The audit found code that may change shell profiles, preloaded libraries, kernel modules or device rules. Such changes can keep working outside Decky.'],
+  'not-in-source': ['Very high risk: Download includes code that is not in GitHub', 'The downloaded release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.'],
+  obfuscated: ['Hidden code', "The audit found encoded or packed code that's hard to read."],
+  'no-tls-check': ['Skips HTTPS checks', 'The audit found code that turns off certificate checks, so what it downloads could be tampered with.'],
+  'runs-downloads': ['Runs downloaded scripts', 'The audit found code that downloads a script and runs it straight away.'],
+  vulnerable: ['Known vulnerabilities', 'The audit found bundled libraries with published security flaws.']
 };
 const SCAN_RESULT_WORDS: Record<string, string> = { clean: 'no threats found', infected: 'threat found', incomplete: 'only partly scanned', error: "couldn't be scanned" };
 const SCAN_BADGES = { clean: ['Nothing flagged', 'good'], infected: ['Threat found', 'danger'], partial: ['Not fully scanned', 'warning'] } as const;
@@ -20,7 +21,7 @@ const SOURCE_RULES = ['source_path_missing', 'source_file_differs'];
 const STORE_NOTE = 'The Decky store lists a plugin with this name. The store names no repository, so check that it is this one.';
 
 type AuditField = 'warnings' | 'prereleaseWarnings';
-type AddBadge = (text: string, kind: string, description: string) => void;
+type AddBadge = (text: string, kind: string, ...description: (string | Node)[]) => void;
 export type BadgeFields = [AuditField, string][];
 
 // Which audit warnings belong to a release: the ones kept for the channel its scan names.
@@ -31,15 +32,22 @@ export function fieldsFor(channel?: Found['channel']): BadgeFields {
 
 const includes = (codes: string[] | undefined, code: string) => Array.isArray(codes) && codes.includes(code);
 
-// Repository facts: root, fork, Decky store, Rust, AI. Release pages show only root.
-function repositoryBadges(add: AddBadge, stats: Stats, all: boolean) {
+// What marked a plugin as AI-assisted, with each "(address)" on GitHub as a short link. Anything else stays text.
+const aiEvidence = (entries: string[]) => entries.join(', ')
+  .split(/\((https:\/\/github\.com\/[^\s()]+)\)/)
+  .flatMap((part, i) => (i % 2 ? ['(', newTabLink(part.includes('/commit/') ? 'commit' : 'link', part), ')'] : [part]));
+
+function rootBadge(add: AddBadge, stats: Stats) {
   if (stats.root === true) add('Runs as root', 'warning', 'The plugin backend runs with root privileges and can read or change system files and user data. Some plugins need this access.');
-  if (!all) return;
+}
+
+// Background facts about the repository: fork, Decky store, Rust, AI. Release pages show none.
+function backgroundBadges(add: AddBadge, stats: Stats) {
   if (typeof stats.fork === 'string') add('Fork', 'unknown', `A fork of ${stats.fork}: its code started as a copy of that project.`);
   if (stats.store) add('In Decky store', 'unknown', STORE_NOTE);
   if (stats.rust === true) add('Rust', 'unknown', 'Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.');
   if (Array.isArray(stats.ai) && stats.ai.length) {
-    add('AI', 'unknown', `Its repository has instructions for AI coding assistants, or says it is made with AI (${stats.ai.join(', ')}). That says nothing about its quality or safety.`);
+    add('AI', 'unknown', 'Its repository has instructions for AI coding assistants, or says it is made with AI (', ...aiEvidence(stats.ai), '). That says nothing about its quality or safety.');
   }
 }
 
@@ -80,21 +88,27 @@ function scanBadge(add: AddBadge, data: Lookup, { record, pre }: Found) {
   const counts = externalCounts(data, record);
   const results = [record.clamav.result, record.yara?.result].filter((value): value is string => !!value)
     .concat(counts.map(([, flagged]) => (flagged ? 'infected' : 'clean')));
-  const [label, kind] = SCAN_BADGES[scanVerdict(results)];
+  const verdict = scanVerdict(results);
+  const [name, kind] = SCAN_BADGES[verdict];
+  // The count the app shows: how many of the four scanners have reported finding nothing.
+  const passed = results.filter(result => result === 'clean').length;
+  const label = verdict === 'partial' ? `${name} · ${passed}/4` : name;
   const verdicts = ([['ClamAV', record.clamav], ['YARA', record.yara]] as [string, Verdict | undefined][])
     .filter((pair): pair is [string, Verdict] => !!pair[1]);
   const detail = verdicts
     .map(([name, verdict]) => `${name}: ${(verdict.result && SCAN_RESULT_WORDS[verdict.result]) || verdict.result}${foundNote(verdict)}`)
     .concat(counts.map(([name, flagged, total]) => `${name}: ${flagged} of ${total} engines flagged it`)).join('; ');
-  add((pre ? 'Pre-release: ' : '') + label, kind, `Virus scan of ${record.file || 'the ZIP'} (${record.tag}): ${detail}. A clean scan isn't proof of safety.`);
+  const reported = verdict === 'partial' ? `. ${passed} of 4 scanners have reported finding nothing` : '';
+  const caveat = kind === 'danger' ? '' : " A clean scan isn't proof of safety.";
+  add((pre ? 'Pre-release: ' : '') + label, kind, `Virus scan of ${record.file || 'the ZIP'} (${record.tag}): ${detail}${reported}.${caveat}`);
 }
 
 // all: repo-level facts too (fork, store, AI); fields: which audit warnings; scans: the releases to describe.
 export function badgeList(data: Lookup, { all = false, fields = [], scans = [] }: { all?: boolean; fields?: BadgeFields; scans?: Found[] }) {
   const items = el('ul', '', 'dh-warning-list');
-  const add: AddBadge = (text, kind, description) => {
+  const add: AddBadge = (text, kind, ...description) => {
     const item = el('li');
-    item.append(el('span', text, `dh-badge dh-${kind}`), document.createTextNode(` ${description}`));
+    item.append(el('span', text, `dh-badge dh-${kind}`), ' ', ...description);
     items.append(item);
   };
   const stats: Stats = data.stats || {};
@@ -103,13 +117,13 @@ export function badgeList(data: Lookup, { all = false, fields = [], scans = [] }
     if (all && stats.store) add('In Decky store', 'unknown', STORE_NOTE);
     return items.childNodes.length ? items : null;
   }
-  repositoryBadges(add, stats, all);
+  // Listed as deckyhub.com lists them: scan results, audit warnings, root, then the background facts.
+  for (const found of scans) scanBadge(add, data, found);
   auditBadges(add, stats, fields);
+  for (const found of scans) notInSourceBadge(add, data, found.record, stats);
+  rootBadge(add, stats);
   // What a pre-release is, for the release it describes: the repo page lists the latest of both channels.
   if (!all && scans.some(({ pre }) => pre)) add('Pre-release', 'warning', 'This is a pre-release, so it may be unfinished or buggy. DeckyHub installs it only if you choose its Pre-release channel.');
-  for (const found of scans) {
-    notInSourceBadge(add, data, found.record, stats);
-    scanBadge(add, data, found);
-  }
+  if (all) backgroundBadges(add, stats);
   return items.childNodes.length ? items : null;
 }

@@ -8,7 +8,7 @@ Safari isn't supported yet: it needs the extension wrapped in an Xcode app, whic
 
 ## What you see
 
-- **On the repository page:** a short panel with the plugin's name, links to its DeckyHub page and **Send to device (experimental)**, and safety badges: runs as root, audit warnings, fork, in the Decky store, made with AI, written in Rust, and the latest virus-scan result.
+- **On the repository page:** a short panel with the plugin's name, links to its DeckyHub page, **Send to device (experimental)** and **Search YouTube** (a search for the plugin's name plus "Decky"; what it finds isn't checked), and safety badges: runs as root, audit warnings, fork, in the Decky store, made with AI, written in Rust, and the latest virus-scan result.
 - **On the Releases page:** a block under each release with the same links and badges for that release, plus its scan reports: ClamAV, YARA, VirusTotal and MetaDefender, and a VirusTotal lookup by file hash. The links open that exact version on DeckyHub.
 - **On a single release page:** the same block as in the list.
 - **On a repository DeckyHub does not list:** when its file list shows a `plugin.json` at the root (so it looks like a Decky plugin), a small panel says DeckyHub has no audit findings or virus scans for it, with a **Suggest it for DeckyHub** link. The link opens the registry's "Add a plugin" form on GitHub with the repository filled in; you read it and submit it yourself.

@@ -34,6 +34,9 @@ jobs:
           [[ "v$(node -p "require('./package.json').version")" == "$version" ]] || { echo "package.json and manifest.json versions differ" >&2; exit 1; }
       - run: npm ci
       - run: npm run build-all
+      - run: |
+          python3 verify-package.py chromium dist/deckyhub-security-chromium.zip
+          python3 verify-package.py firefox dist-firefox/deckyhub-security-firefox.zip
       - name: Name the ZIPs after the release
         run: |
           mkdir -p "$RUNNER_TEMP/release"
